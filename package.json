@@ -1,0 +1,17 @@
+{
+  "name": "template-keylab",
+  "version": "1.0.0",
+  "private": true,
+  "description": "O cérebro do seu negócio numa pasta: a IA lê, aprende e organiza, e um painel mostra tudo.",
+  "scripts": {
+    "start": "node painel/servidor.js --abrir",
+    "painel": "node painel/ligar.js --abrir",
+    "parar": "node painel/ligar.js --parar",
+    "status": "node painel/contexto.js --sem-painel",
+    "salvar": "node painel/salvar.js",
+    "baixar": "node painel/baixar.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

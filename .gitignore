@@ -1,0 +1,40 @@
+# Segredos: nunca vão pro GitHub
+.env
+.env.*
+*.pem
+*.key
+*senhas*
+credenciais*
+
+# Coisas do painel neste computador
+painel/.porta
+painel/.painel.log
+*.tmp-*
+# O baixador de vídeo (o painel baixa sozinho na primeira vez)
+.ferramentas/
+# As fotos das cenas dos vídeos baixados (saem de novo do vídeo; os mosaicos ficam)
+arquivos/virais/*/quadros/
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
+node_modules/
+
+# Arquivos grandes: o GitHub recusa acima de 100 MB.
+# Quer guardar vídeo no GitHub? Apague a linha do formato.
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.zip
+*.rar
+# Áudio também: os vídeos baixados "só o áudio" vêm assim
+*.m4a
+*.mp3
+*.wav
+*.aac
+*.opus
+*.ogg
+*.webm
+*.m4v

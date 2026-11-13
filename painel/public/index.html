@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Painel do negócio</title>
+  <link rel="icon" id="favicon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23000'/%3E%3Ccircle cx='9' cy='12' r='3.4' fill='none' stroke='%23ff2d87' stroke-width='2'/%3E%3Cpath d='M12.4 12h7M17 12v2.6' stroke='%23ff2d87' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/estilo.css">
+  <script>
+    // aplica o tema antes de desenhar, pra não piscar
+    try {
+      var t = localStorage.getItem('keylab-tema');
+      if (t === 'claro') document.documentElement.setAttribute('data-theme', 'light');
+      if (t === 'escuro') document.documentElement.setAttribute('data-theme', 'dark');
+      var m = localStorage.getItem('keylab-marca');
+      if (m) document.documentElement.style.cssText = m;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div id="app"></div>
+  <noscript>O painel precisa do JavaScript ligado no navegador.</noscript>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>
