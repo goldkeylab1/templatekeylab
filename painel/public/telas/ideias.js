@@ -1,5 +1,5 @@
 // Ideias: guardar agora, decidir depois.
-import { h, ic, api, aviso, falhou, cabeca, confirmar, copiar, chave, vazio } from '../ui.js';
+import { h, ic, api, aviso, falhou, cabeca, confirmar, copiar, chave, vazio, pedirIA } from '../ui.js';
 
 const TIPOS = ['produto', 'conteúdo', 'melhoria', 'negócio', 'outro'];
 const STATUS = ['nova', 'pensando', 'fazendo', 'feita', 'descartada'];
@@ -54,7 +54,7 @@ function cartaoDeIdeia(i, ctx) {
       h('button', {
         type: 'button',
         class: 'botao leve pequeno',
-        onclick: () => copiar(`Avalie a ideia "${i.titulo}" (memoria/ideias.md) com os números e a estratégia do meu negócio: o que sustenta, o que derruba e um teste pequeno que decide. Anote em "Pra pensar".`),
+        onclick: () => pedirIA(`Avalie a ideia "${i.titulo}" (memoria/ideias.md) com os números e a estratégia do meu negócio: o que sustenta, o que derruba e um teste pequeno que decide. Anote em "Pra pensar".`),
       }, ic('ia'), 'Avaliar com a IA')));
 }
 

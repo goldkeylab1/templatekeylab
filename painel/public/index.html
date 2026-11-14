@@ -13,6 +13,7 @@
       var t = localStorage.getItem('keylab-tema');
       if (t === 'claro') document.documentElement.setAttribute('data-theme', 'light');
       if (t === 'escuro') document.documentElement.setAttribute('data-theme', 'dark');
+      if (localStorage.getItem('keylab-menu-recolhido') === '1') document.documentElement.classList.add('menu-recolhido');
       var m = localStorage.getItem('keylab-marca');
       if (m) document.documentElement.style.cssText = m;
     } catch (e) {}

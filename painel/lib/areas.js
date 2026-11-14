@@ -38,6 +38,8 @@ function lerArea(dirAbs) {
     descricao: md.descricaoDoArquivo(linhas),
     topo: listaDeTexto(valor(linhas, 'mostrar no topo')),
     tambem: listaDeTexto(valor(linhas, 'mostrar tambem')),
+    telas: listaDeTexto(valor(linhas, 'telas')).map((t) => md.chave(t).replace(/\s+/g, '-')),
+    telaPropria: md.chave(valor(linhas, 'tela propria')).replace(/\s+/g, '-'),
     pedidos: pedidos ? pedidos.itens.map((p) => p.replace(/^["“]|["”]$/g, '').replace(/`/g, '')) : [],
     leiame: relativo(leia),
   };
@@ -84,9 +86,11 @@ function infoArquivo(abs) {
   }
   const { linhas, texto } = md.ler(abs);
   const cfg = md.marcador(texto, 'configurar');
+  const form = !cfg && md.marcador(texto, 'formulario');
   let tipo = 'texto';
   if (nome.startsWith('_')) tipo = 'molde';
   else if (cfg) tipo = 'configurar';
+  else if (form) tipo = 'formulario';
   else if (ehQuadro(texto)) tipo = 'kanban';
   const info = {
     caminho: rel,
@@ -95,11 +99,11 @@ function infoArquivo(abs) {
     tipo,
     atualizado: st.mtimeMs,
   };
-  if (cfg) Object.assign(info, statusDoArquivo(linhas), { ordem: cfg.ordem });
+  if (cfg || form) Object.assign(info, statusDoArquivo(linhas), { ordem: (cfg || form).ordem });
   return info;
 }
 
-const PESO = { configurar: 0, kanban: 1, texto: 2, dados: 3, molde: 4 };
+const PESO = { configurar: 0, formulario: 0.5, kanban: 1, texto: 2, dados: 3, molde: 4 };
 
 function ordenar(lista) {
   return lista.filter(Boolean).sort((a, b) => {

@@ -1,6 +1,8 @@
 // O painel: menu do lado, rotas (#/tela), tema, cor da marca e atualização ao vivo.
 // Cada tela fica em telas/<nome>.js e exporta montar(alvo, ctx).
 import { h, ic, api, aviso, falhou } from './ui.js';
+import { abrirBusca } from './busca.js';
+import { iniciarChat, eventoDoChat, botaoDoChat } from './chat.js';
 
 const TELAS = {
   comece: () => import('./telas/comece.js'),
@@ -10,6 +12,12 @@ const TELAS = {
   arquivo: () => import('./telas/arquivo.js'),
   feedbacks: () => import('./telas/feedbacks.js'),
   ideias: () => import('./telas/ideias.js'),
+  testes: () => import('./telas/testes.js'),
+  numeros: () => import('./telas/numeros.js'),
+  saidas: () => import('./telas/saidas.js'),
+  crencas: () => import('./telas/crencas.js'),
+  frases: () => import('./telas/frases.js'),
+  diario: () => import('./telas/diario.js'),
   ferramentas: () => import('./telas/ferramentas.js'),
   ajuda: () => import('./telas/ajuda.js'),
   ajustes: () => import('./telas/ajustes.js'),
@@ -104,6 +112,7 @@ function itensDoMenu(inicio) {
     { id: 'dashboard', nome: 'Dashboard', icone: 'calendario', href: '#/dashboard', ordem: 20 },
     { id: 'kanban', nome: 'Kanban', icone: 'colunas', href: '#/kanban', ordem: 30 },
     { id: 'ferramentas', nome: 'Ferramentas', icone: 'ferramenta', href: '#/ferramentas', ordem: 60 },
+    { id: 'saidas', nome: 'Saídas', icone: 'bandeja', href: '#/saidas', ordem: 80 },
     { id: 'feedbacks', nome: 'Feedbacks', icone: 'conversa', href: '#/feedbacks', ordem: 90 },
     { id: 'ideias', nome: 'Ideias', icone: 'lampada', href: '#/ideias', ordem: 100 },
     ...inicio.areas.map((a) => ({ id: `area:${a.id}`, nome: a.nome, icone: a.icone, href: `#/area/${encodeURIComponent(a.id)}`, ordem: a.ordem })),
@@ -117,11 +126,16 @@ function itensDoMenu(inicio) {
   };
 }
 
+// Telas que moram dentro de uma área (o menu marca a área)
+const TELA_DA_AREA = { testes: 'marketing', numeros: 'marketing', crencas: 'mentalidade', frases: 'mentalidade', diario: 'mentalidade' };
+
 function idAtivo(r) {
   if (r.nome === 'area') return `area:${r.resto[0]}`;
+  if (TELA_DA_AREA[r.nome]) return `area:${TELA_DA_AREA[r.nome]}`;
   if (r.nome === 'arquivo') {
     const c = r.params.get('c') || '';
     const pasta = c.split('/')[0];
+    if (pasta === 'saidas') return 'saidas';
     const area = (estado.inicio?.areas || []).find((a) => a.id === pasta);
     if (area) return `area:${area.id}`;
     if (pasta === 'memoria') return 'area:negocio';
@@ -137,30 +151,117 @@ function marcaDoMenu(inicio) {
   else simbolo.append(ic('chave'));
   return h('a', { class: 'marca', href: '#/dashboard', 'aria-label': 'Ir pro Dashboard' },
     simbolo,
-    h('span', { style: 'min-width:0' },
+    h('span', { class: 'marca-textos', style: 'min-width:0' },
       h('span', { class: 'marca-nome' }, m.nome || 'Seu negócio'),
       h('span', { class: 'marca-sub' }, m.nome ? 'Painel do negócio' : 'Configure em Comece aqui')));
 }
 
 function linkDoMenu(item) {
-  return h('a', { href: item.href, 'data-id': item.id },
+  return h('a', { href: item.href, 'data-id': item.id, title: item.nome },
     h('span', { class: 'ico-menu' }, ic(item.icone)),
-    h('span', null, item.nome),
+    h('span', { class: 'nome-menu' }, item.nome),
     item.selo ? h('span', { class: 'selo', 'aria-label': `${item.selo} configurado` }, item.selo) : null);
-}
-
-function seletorDeTema() {
-  const atual = lerTema();
-  const opcoes = [['claro', 'sol', 'Tema claro'], ['auto', 'auto', 'Igual ao computador'], ['escuro', 'lua', 'Tema escuro']];
-  return h('div', { class: 'segmentado', role: 'group', 'aria-label': 'Tema', style: 'align-self:flex-start' },
-    opcoes.map(([t, i, nome]) => h('button', { type: 'button', 'data-tema': t, 'aria-pressed': String(atual === t), title: nome, 'aria-label': nome, onclick: () => trocarTema(t) }, ic(i))));
 }
 
 function salvoNoGitHub(git) {
   let classe = 'salvo';
   if (git.ligado && !git.mudancas) classe += ' ok';
   else classe += ' atencao';
-  return h('a', { class: classe, href: '#/ajustes', title: 'GitHub' }, h('span', { class: 'ponto' }), h('span', null, git.resumo || 'GitHub'));
+  return h('a', { class: classe, href: '#/ajustes', title: git.resumo || 'GitHub' }, h('span', { class: 'ponto' }), h('span', { class: 'rotulo-lateral' }, git.resumo || 'GitHub'));
+}
+
+// ---------- busca (Cmd+K) ----------
+
+const MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+
+export function procurar() {
+  if (!estado.inicio) return;
+  const { principais, rodape } = itensDoMenu(estado.inicio);
+  const telas = [...principais, ...rodape, { nome: 'Testes', icone: 'alvo', href: '#/testes' }, { nome: 'Números', icone: 'grafico', href: '#/numeros' }, { nome: 'Troca de crenças', icone: 'passaro', href: '#/crencas' }, { nome: 'Frases pra repetir', icone: 'aspas', href: '#/frases' }, { nome: 'Diário', icone: 'livro', href: '#/diario' }];
+  abrirBusca({ navegar, telas });
+}
+
+function botaoProcurar() {
+  return h('button', { type: 'button', class: 'botao-procurar', onclick: procurar, 'aria-keyshortcuts': MAC ? 'Meta+K' : 'Control+K' },
+    ic('busca'), h('span', { class: 'rotulo-lateral' }, 'Procurar'), h('kbd', null, MAC ? '⌘K' : 'Ctrl K'));
+}
+
+// ---------- o sonho, sempre à vista (de leve) ----------
+// Alterna entre o sonho, o porquê e a frase do dia (mentalidade/). Sem sonho escrito, convida a escrever.
+
+let relogioDoLembrete = null;
+
+function itensDoLembrete(l) {
+  if (!l) return [];
+  const itens = [];
+  if (l.sonho) itens.push({ rotulo: 'O meu sonho', texto: l.sonho, href: '#/area/mentalidade', icone: 'montanha' });
+  else itens.push({ rotulo: 'O meu sonho', texto: 'Qual é o seu sonho? Escreva em uma frase.', href: `#/arquivo?c=${encodeURIComponent('mentalidade/meus-sonhos.md')}`, icone: 'montanha', convite: true });
+  if (l.porque) itens.push({ rotulo: 'O meu porquê', texto: l.porque, href: '#/area/mentalidade', icone: 'coracao' });
+  if (l.frase) itens.push({ rotulo: 'Frase do dia', texto: l.frase, href: '#/area/mentalidade', icone: 'semente' });
+  return itens;
+}
+
+function lembreteDoSonho(l) {
+  clearInterval(relogioDoLembrete);
+  const itens = itensDoLembrete(l);
+  if (!itens.length) return null;
+  let i = 0;
+  const icone = h('span', { class: 'lembrete-ico' });
+  const rotulo = h('span', { class: 'lembrete-rotulo' });
+  const texto = h('span', { class: 'lembrete-texto' });
+  const el = h('a', { class: 'lembrete-sonho' }, icone, h('span', { class: 'lembrete-corpo rotulo-lateral' }, rotulo, texto));
+  const mostrarItem = () => {
+    const it = itens[i];
+    el.href = it.href;
+    el.title = `${it.rotulo}: ${it.texto}`;
+    el.classList.toggle('convite', !!it.convite);
+    icone.replaceChildren(ic(it.icone));
+    rotulo.textContent = it.rotulo;
+    texto.textContent = it.texto;
+  };
+  mostrarItem();
+  if (itens.length > 1) {
+    relogioDoLembrete = setInterval(() => {
+      if (!el.isConnected) { clearInterval(relogioDoLembrete); return; }
+      el.classList.add('trocando');
+      setTimeout(() => { i = (i + 1) % itens.length; mostrarItem(); el.classList.remove('trocando'); }, 400);
+    }, 14000);
+  }
+  return el;
+}
+
+// No celular o menu fica escondido: o sonho aparece no fim de cada tela
+function rodapeDoSonho(l) {
+  if (!l || !l.sonho) return null;
+  return h('a', { class: 'sonho-rodape', href: '#/area/mentalidade' }, ic('montanha'), h('span', null, l.sonho));
+}
+
+// ---------- menu recolhido (só os ícones) ----------
+
+const RECOLHIDO = 'keylab-menu-recolhido';
+
+function menuRecolhido() {
+  return document.documentElement.classList.contains('menu-recolhido');
+}
+
+export function alternarMenu() {
+  const novo = !menuRecolhido();
+  document.documentElement.classList.toggle('menu-recolhido', novo);
+  try { localStorage.setItem(RECOLHIDO, novo ? '1' : '0'); } catch { /* sem guardar */ }
+  document.querySelectorAll('.botao-recolher').forEach((b) => {
+    const rotulo = novo ? 'Abrir o menu' : 'Recolher o menu';
+    b.setAttribute('aria-expanded', String(!novo));
+    b.setAttribute('title', rotulo);
+    b.setAttribute('aria-label', rotulo);
+  });
+}
+
+// Fica na borda de cima do menu, à direita, metade pra fora
+function botaoRecolher() {
+  const recolhido = menuRecolhido();
+  const rotulo = recolhido ? 'Abrir o menu' : 'Recolher o menu';
+  return h('button', { type: 'button', class: 'botao-recolher', onclick: alternarMenu, title: rotulo, 'aria-label': rotulo, 'aria-expanded': String(!recolhido) },
+    ic('lateral'));
 }
 
 function desenharLateral() {
@@ -169,15 +270,20 @@ function desenharLateral() {
   const lateral = document.querySelector('.lateral');
   const vidro = h('div', { class: 'lateral-vidro vidro' },
     marcaDoMenu(inicio),
+    botaoProcurar(),
+    botaoDoChat(),
     h('nav', { class: 'menu', 'aria-label': 'Menu' },
       principais.map(linkDoMenu),
       h('div', { class: 'menu-separa', role: 'separator' }),
       rodape.map(linkDoMenu)),
-    h('div', { class: 'lateral-rodape' }, salvoNoGitHub(inicio.git), seletorDeTema()));
-  lateral.replaceChildren(vidro);
+    lembreteDoSonho(inicio.lembrete),
+    h('div', { class: 'lateral-rodape' }, salvoNoGitHub(inicio.git)));
+  lateral.replaceChildren(vidro, botaoRecolher());
   document.querySelector('.topo-movel').replaceChildren(
     marcaDoMenu(inicio),
-    h('button', { type: 'button', class: 'icone-botao', 'aria-label': 'Abrir o menu', onclick: () => lateral.classList.add('aberta') }, ic('menu')));
+    h('div', { class: 'chips' },
+      h('button', { type: 'button', class: 'icone-botao', 'aria-label': 'Procurar', onclick: procurar }, ic('busca')),
+      h('button', { type: 'button', class: 'icone-botao', 'aria-label': 'Abrir o menu', onclick: () => lateral.classList.add('aberta') }, ic('menu'))));
   marcarMenu();
 }
 
@@ -220,6 +326,8 @@ async function mostrar({ silencioso = false } = {}) {
     const controle = await mod.montar(novo, { rota: r, inicio: estado.inicio, recarregar, atualizarInicio, navegar });
     if (versao !== estado.versao) return;
     alvo.replaceChildren(...novo.childNodes);
+    const rodape = rodapeDoSonho(estado.inicio && estado.inicio.lembrete);
+    if (rodape) alvo.append(rodape);
     estado.controle = controle || {};
     if (estado.controle.depois) estado.controle.depois();
     const nomeMarca = estado.inicio?.marca?.nome;
@@ -265,6 +373,7 @@ function ouvirMudancas() {
     relogio = setTimeout(() => recarregar({ silencioso: true }), 200);
   });
   // O "npm run baixar" (pelo terminal) traz as abas pra tela Ferramentas: é lá que saem as fotos e a transcrição
+  fonte.addEventListener('chat', (e) => { try { eventoDoChat(JSON.parse(e.data)); } catch { /* evento estranho */ } });
   fonte.addEventListener('ferramentas', () => { if (!location.hash.startsWith('#/ferramentas')) navegar('#/ferramentas'); });
 }
 
@@ -282,13 +391,17 @@ async function iniciar() {
   lateral.addEventListener('click', (e) => {
     if (e.target === lateral || e.target.closest('a')) lateral.classList.remove('aberta');
   });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') lateral.classList.remove('aberta'); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') lateral.classList.remove('aberta');
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); procurar(); }
+  });
   try {
     await atualizarInicio();
   } catch (e) {
     document.getElementById('tela').replaceChildren(telaDeErro(e));
     return;
   }
+  try { await iniciarChat(); } catch { /* o painel funciona sem o chat */ }
   window.addEventListener('hashchange', () => mostrar());
   await mostrar();
   ouvirMudancas();

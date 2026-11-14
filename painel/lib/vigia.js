@@ -9,7 +9,7 @@ function ignorar(rel) {
   return !rel
     || rel === '.git' || rel.startsWith('.git/')
     || rel.includes('node_modules')
-    || rel.startsWith('painel/.')
+    || (rel.startsWith('painel/.') && rel !== 'painel/.anotador.log')
     || rel.startsWith('.claude/')
     // as ferramentas escrevem muito ali (o download, as fotos): a tela Ferramentas acompanha sozinha
     || rel === '.ferramentas' || rel.startsWith('.ferramentas/')

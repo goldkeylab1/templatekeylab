@@ -1,5 +1,5 @@
 // Feedbacks: registrar o que falam do negócio e ver o que a IA aprendeu com isso.
-import { h, ic, api, aviso, falhou, cabeca, confirmar, copiar, chave, inline, vazio } from '../ui.js';
+import { h, ic, api, aviso, falhou, cabeca, confirmar, copiar, chave, inline, vazio, pedirIA } from '../ui.js';
 
 const TIPOS = ['elogio', 'crítica', 'sugestão', 'dúvida', 'opinião', 'resultado'];
 const QUEM = ['cliente', 'eu', 'seguidor', 'equipe', 'outro'];
@@ -71,7 +71,7 @@ function aprendizados(ap, ctx) {
     blocos,
     h('div', { class: 'chips', style: 'margin-top:12px;justify-content:space-between' },
       h('a', { class: 'botao leve pequeno', href: `#/arquivo?c=${encodeURIComponent(fonte.arquivo)}` }, ic('texto'), 'Abrir o arquivo'),
-      h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => copiar('Leia os feedbacks com status "novo" em memoria/feedbacks.md. Pra cada um, diga o que ele ensina, anote nos aprendizados certos (só com prova) e mude o status.') }, ic('ia'), 'Pedir pra IA aprender com os novos')));
+      h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => pedirIA('Leia os feedbacks com status "novo" em memoria/feedbacks.md. Pra cada um, diga o que ele ensina, anote nos aprendizados certos (só com prova) e mude o status.') }, ic('ia'), 'Pedir pra IA aprender com os novos')));
 }
 
 function cartaoDeFeedback(f, ctx) {

@@ -33,6 +33,7 @@
 | "o que funciona?", ou julgar uma ideia | [metodo/descobrir-o-que-funciona.md](metodo/descobrir-o-que-funciona.md) |
 | "analisa meus números", "como foi a semana" | [metodo/analisar-numeros.md](metodo/analisar-numeros.md) |
 | "estuda esse vídeo", ou o link de um viral | [metodo/estudar-viral.md](metodo/estudar-viral.md) |
+| "estuda esses juntos", "acha o padrão", vários vídeos ou roteiros | [metodo/estudar-padroes.md](metodo/estudar-padroes.md) |
 | "sobre o que eu posto?", "me dá ideias" | [metodo/escolher-tema.md](metodo/escolher-tema.md) |
 | "escreve um roteiro", "um post", "uma legenda" | [metodo/escrever-roteiro.md](metodo/escrever-roteiro.md) |
 | "planeja a semana" | [metodo/planejar-semana.md](metodo/planejar-semana.md) |
@@ -54,3 +55,4 @@
 - **Ícone:** megafone
 - **Ordem:** 50
 - **Mostrar no topo (opcional):** o-que-funciona.md
+- **Telas (opcional):** testes, numeros

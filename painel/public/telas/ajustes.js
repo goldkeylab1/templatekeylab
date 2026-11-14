@@ -1,5 +1,5 @@
 // Ajustes: tema, a sua marca no painel (logo, cor, nome) e o GitHub.
-import { h, ic, api, aviso, falhou, cabeca, copiar, quandoFoi } from '../ui.js';
+import { h, ic, api, aviso, falhou, cabeca, copiar, quandoFoi, pedirIA, temChat } from '../ui.js';
 import { trocarTema, lerTema } from '../app.js';
 
 function linha(titulo, texto, controle) {
@@ -112,7 +112,7 @@ function painelGitHub(g, ctx) {
       g.doModelo ? 'Ainda ligado ao modelo' : 'Ainda não está no seu GitHub',
       'Crie um repositório PRIVADO e ligue esta pasta nele. A IA faz com você.',
       h('div', { class: 'chips' },
-        h('button', { type: 'button', class: 'botao pequeno', onclick: () => copiar('salvar no github') }, ic('ia'), 'Copiar pedido'),
+        h('button', { type: 'button', class: 'botao pequeno', onclick: () => pedirIA('salvar no github') }, ic('ia'), temChat() ? 'Pedir pra IA' : 'Copiar pedido'),
         h('a', { class: 'botao leve pequeno', href: '#/ajuda?q=github' }, 'Ver passo a passo'))));
   }
   if (g.visibilidade === 'publico') {
@@ -143,6 +143,39 @@ function painelGitHub(g, ctx) {
     h('ul', { class: 'lista' }, itens));
 }
 
+// O anotador: a IA que confere a conversa escondida e anota no cérebro o que ficou pra trás
+function painelAnotador(a, ctx) {
+  const MOTIVOS = {
+    desligado: 'Desligado. A IA só anota o que lembrar na hora.',
+    modelo: 'Parado: esta pasta ainda está ligada ao modelo no GitHub (o cérebro do modelo vai pra todo mundo). Ligue no seu GitHub pra ele funcionar.',
+    'sem-claude': 'Precisa do Claude Code instalado neste computador.',
+  };
+  const status = a.funcionando
+    ? (a.rodando ? 'Anotando agora...' : 'Ligado. Confere a conversa a cada 5 mensagens e sempre no fim dela.')
+    : MOTIVOS[a.motivo] || '';
+  const seletor = h('select', {
+    class: 'entrada',
+    style: 'width:auto',
+    'aria-label': 'Modelo do anotador',
+    onchange: async (e) => { try { await api('/api/anotador', { modelo: e.target.value }); aviso('Modelo do anotador trocado.'); } catch (err) { falhou(err); } },
+  }, a.modelos.map((m) => h('option', { value: m.id, selected: m.id === a.modelo }, m.nome)));
+  const vezes = a.ultimos.slice(0, 5);
+  return h('section', { class: 'painel vidro' },
+    h('div', { class: 'painel-cabeca' }, h('h2', null, 'Aprender sozinho'), h('span', { class: `chip${a.funcionando ? ' cheio' : ''}` }, a.funcionando ? 'ligado' : 'parado')),
+    h('p', { class: 'suave pequeno', style: 'margin:-4px 0 6px' }, 'Além do que a IA anota na hora, uma IA escondida confere a conversa e guarda no cérebro o que ficou pra trás. Usa um pouco do seu plano do Claude.'),
+    h('ul', { class: 'lista' },
+      linha('Anotar sozinho', status, interruptor(a.ligado, async (v) => { await api('/api/anotador', { ligado: v }); ctx.recarregar({ silencioso: true }); }, 'Anotar sozinho')),
+      linha('Modelo do anotador', 'Haiku: barato e rápido (recomendado). Sonnet: mais cuidadoso, gasta mais.', seletor)),
+    vezes.length
+      ? h('div', { style: 'margin-top:10px' },
+        h('h3', null, 'Últimas vezes'),
+        h('ul', { class: 'lista' }, vezes.map((e) => h('li', { class: 'linha' },
+          h('div', { class: 'linha-texto' },
+            h('div', { class: 'pequeno' }, e.erro ? `Não deu certo: ${e.erro}` : (e.itens && e.itens.length ? e.itens.join(' · ') : 'Nada novo pra anotar.')),
+            h('div', { class: 'fraco pequeno' }, `${quandoFoi(e.quando)} · ${e.mensagens} ${e.mensagens === 1 ? 'mensagem lida' : 'mensagens lidas'} · ${e.gancho === 'fim' ? 'fim da conversa' : e.gancho === 'compactar' ? 'conversa longa' : e.gancho === 'manual' ? 'na mão' : 'durante a conversa'}`))))))
+      : null);
+}
+
 function painelOutraIA() {
   return h('section', { class: 'painel vidro' },
     h('h2', null, 'Levar pra outra IA'),
@@ -160,15 +193,19 @@ function painelSobre(ctx) {
     h('ul', { class: 'lista' },
       linha('Pasta', ctx.inicio.pasta, null),
       linha('Versão', ctx.inicio.versao, null),
+      linha('Abrir o painel sozinho', 'Quando você começa uma conversa com a IA, o painel abre no navegador (se ainda não estiver aberto).', interruptor(ctx.inicio.abrirSozinho, async (v) => {
+        await api('/api/preferencia', { nome: 'Abrir o painel sozinho', valor: v ? 'sim' : 'não', rotulo: 'Abrir o painel sozinho' });
+        await ctx.atualizarInicio();
+      }, 'Abrir o painel sozinho')),
       linha('Desligar', 'Feche a janela do terminal, ou rode: npm run parar', null),
-      linha('Mudar o painel', 'Peça pra IA. Ela segue receitas/personalizar-painel.md.', h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => copiar('Quero mudar o meu painel: ') }, ic('ia'), 'Copiar pedido'))));
+      linha('Mudar o painel', 'Peça pra IA. Ela segue receitas/personalizar-painel.md.', h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => pedirIA('Quero mudar o meu painel: ') }, ic('ia'), temChat() ? 'Pedir pra IA' : 'Copiar pedido'))));
 }
 
 export async function montar(alvo, ctx) {
-  const g = await api('/api/git');
-  alvo.append(cabeca({ titulo: 'Ajustes', texto: 'A cara do painel e o backup no GitHub.' }));
+  const [g, a] = await Promise.all([api('/api/git'), api('/api/anotador')]);
+  alvo.append(cabeca({ titulo: 'Ajustes', texto: 'A cara do painel, o backup no GitHub e como a IA aprende.' }));
   alvo.append(h('div', { class: 'grade-2' },
     h('div', { class: 'pilha' }, painelAparencia(ctx), painelGitHub(g, ctx)),
-    h('div', { class: 'pilha' }, painelOutraIA(), painelSobre(ctx))));
+    h('div', { class: 'pilha' }, painelAnotador(a, ctx), painelOutraIA(), painelSobre(ctx))));
   return { titulo: 'Ajustes' };
 }

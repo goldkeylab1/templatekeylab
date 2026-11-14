@@ -1,5 +1,5 @@
 // Kanban: um quadro por arquivo .md com o marcador de kanban. Arraste os cartões entre as colunas.
-import { h, ic, api, aviso, falhou, cabeca, janela, confirmar, pedirTexto, dataCurta, hoje, vazio, copiar } from '../ui.js';
+import { h, ic, api, aviso, falhou, cabeca, janela, confirmar, pedirTexto, dataCurta, hoje, vazio, copiar, pedirIA } from '../ui.js';
 
 const escolha = {
   get quadro() { try { return localStorage.getItem('keylab-quadro') || ''; } catch { return ''; } },
@@ -195,6 +195,11 @@ export async function montar(alvo, ctx) {
     texto: atual && atual.descricao ? atual.descricao : 'Arraste os cartões de uma coluna pra outra. A IA também move quando você conta que algo andou.',
     acoes: [novoQuadro],
   }));
+  const sonho = ctx.inicio && ctx.inicio.lembrete && ctx.inicio.lembrete.sonho;
+  if (sonho) {
+    alvo.append(h('a', { class: 'frase-do-dia rumo', href: '#/area/mentalidade', title: 'O meu sonho' },
+      ic('montanha'), h('span', null, `Cada cartão te deixa mais perto de: ${sonho}`)));
+  }
 
   if (!atual) {
     alvo.append(vazio({ titulo: 'Nenhum quadro ainda', texto: 'Crie um quadro no botão acima, ou peça pra IA.', pedido: 'Crie um quadro de kanban pra organizar o meu trabalho.' }));
@@ -214,7 +219,7 @@ export async function montar(alvo, ctx) {
     type: 'button',
     class: 'botao leve pequeno',
     title: 'Copiar pedido pra IA',
-    onclick: () => copiar(`Olhe o quadro "${atual.titulo}" (${atual.arquivo}) e me diga o que está parado, o que está atrasado e o que eu faço primeiro.`),
+    onclick: () => pedirIA(`Olhe o quadro "${atual.titulo}" (${atual.arquivo}) e me diga o que está parado, o que está atrasado e o que eu faço primeiro.`),
   }, ic('ia'), 'Pedir análise pra IA')));
 
   alvo.append(h('div', { class: 'quadro' },

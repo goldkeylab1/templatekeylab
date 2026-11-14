@@ -146,7 +146,7 @@ function listarTranscricoes() {
   const lista = [];
   for (const pasta of pastasDe('transcricoes')) {
     const i = lerJson(path.join(dirDe('transcricoes', pasta), 'info.json'));
-    if (i) lista.push({ pasta, ...i });
+    if (i) lista.push({ pasta, ...i, estudado: fs.existsSync(path.join(RAIZ, 'saidas', 'estudos', `${pasta}.md`)) });
   }
   return lista.sort((a, b) => String(b.em).localeCompare(String(a.em)));
 }

@@ -1,9 +1,13 @@
 // Um arquivo: perguntas viram formulário, o resto aparece como documento.
 // "Editar o texto" abre o arquivo inteiro pra mexer à mão.
-import { h, ic, api, aviso, falhou, cabeca, markdown, ligarCaixas, separarRotulo, copiar, quandoFoi, esc } from '../ui.js';
+import { h, ic, api, aviso, falhou, cabeca, markdown, ligarCaixas, separarRotulo, copiar, quandoFoi, esc, pedirIA } from '../ui.js';
 import { semCabecalho } from './area.js';
 
 function voltaDe(f) {
+  if (f.caminho.startsWith('saidas/')) return { href: '#/saidas', texto: 'Saídas' };
+  if (f.caminho === 'marketing/testes.md') return { href: '#/testes', texto: 'Testes' };
+  if (f.caminho === 'mentalidade/crencas.md') return { href: '#/crencas', texto: 'Troca de crenças' };
+  if (/^marketing\/numeros\/placar/.test(f.caminho)) return { href: '#/numeros', texto: 'Números' };
   if (f.area) return { href: `#/area/${encodeURIComponent(f.area.id)}`, texto: f.area.nome };
   if (f.caminho.startsWith('memoria/')) return { href: '#/area/negocio', texto: 'Meu negócio' };
   return { href: '#/dashboard', texto: 'Dashboard' };
@@ -166,7 +170,21 @@ export async function montar(alvo, ctx) {
   const acoes = [];
   if (ehMd && !editar) acoes.push(h('a', { class: 'botao', href: `#/arquivo?c=${encodeURIComponent(f.caminho)}&editar=1` }, ic('lapis'), 'Editar o texto'));
   if (f.tipo === 'kanban') acoes.push(h('a', { class: 'botao', href: `#/kanban?q=${encodeURIComponent(f.caminho)}` }, ic('colunas'), 'Abrir no Kanban'));
-  acoes.push(h('button', { type: 'button', class: 'botao', onclick: () => copiar(pedidoDe(f)) }, ic('ia'), 'Pedir pra IA'));
+  if (f.caminho === 'marketing/testes.md' && !editar) acoes.push(h('a', { class: 'botao', href: '#/testes' }, ic('alvo'), 'Abrir em Testes'));
+  if (/^marketing\/numeros\/placar/.test(f.caminho) && !editar) acoes.push(h('a', { class: 'botao', href: '#/numeros' }, ic('grafico'), 'Ver o gráfico'));
+  if (f.caminho.startsWith('saidas/') && !editar) {
+    acoes.unshift(h('button', {
+      type: 'button',
+      class: 'botao principal',
+      onclick: async () => {
+        try {
+          const r = await api(`/api/saidas/texto?caminho=${encodeURIComponent(f.caminho)}`);
+          await copiar(r.texto, 'Copiado. É só colar onde for usar.');
+        } catch (e) { falhou(e); }
+      },
+    }, ic('copiar'), 'Copiar o texto'));
+  }
+  acoes.push(h('button', { type: 'button', class: 'botao', onclick: () => pedirIA(pedidoDe(f)) }, ic('ia'), 'Pedir pra IA'));
 
   alvo.append(cabeca({ titulo: f.titulo, texto: f.descricao, volta: voltaDe(f), acoes }));
 
@@ -179,7 +197,7 @@ export async function montar(alvo, ctx) {
   } else if (!ehMd) {
     alvo.append(h('section', { class: 'painel vidro' }, h('pre', { style: 'white-space:pre-wrap;margin:0;font-family:var(--fonte-mono);font-size:13px' }, f.texto)), rodape);
   } else {
-    const temCampos = f.tipo === 'configurar' && f.campos.length;
+    const temCampos = (f.tipo === 'configurar' || f.tipo === 'formulario') && f.campos.length;
     const corpo = temCampos ? formulario(f, ctx, estado) : h('div', { class: 'doc', html: markdown(semCabecalho(f.texto), { base: f.caminho.split('/').slice(0, -1).join('/') }) });
     if (!temCampos) ligarCaixas(corpo, semCabecalho(f.texto), f.caminho, () => ctx.recarregar({ silencioso: true }));
     const caixa = h('section', { class: 'painel vidro' }, corpo);

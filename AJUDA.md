@@ -23,10 +23,10 @@ IA que só conversa (ChatGPT ou Claude no site) também serve. Veja "Uso uma IA 
 
 ### Por onde eu começo?
 
-1. Abra esta pasta na sua IA.
-2. Escreva: configurar.
+1. Abra esta pasta na sua IA e diga oi.
+2. A IA abre o painel no navegador e começa a configurar com você.
 3. Responda as perguntas (dá pra pular).
-4. Abra o painel e veja o "Comece aqui".
+4. Quer continuar outro dia? Escreva: configurar.
 
 Peça pra IA: `configurar`
 
@@ -80,9 +80,15 @@ Use uma pasta pra cada negócio (baixe o modelo de novo). Cada um tem o seu cér
 
 Depois de cada mensagem sua, ela vê se tem algo pra guardar (feedback, ideia, decisão, correção, tarefa) e anota no arquivo certo, sozinha. No fim da resposta ela avisa: "Anotei: ...".
 
+No Claude Code (e no chat do painel) tem mais uma garantia: um **anotador** escondido confere a conversa a cada 5 mensagens suas e sempre no fim, e anota o que a IA deixou passar (por exemplo, quando ela estava focada numa tarefa grande). Ele usa o Haiku, o modelo mais barato, e só lê as mensagens novas. O que ele anotou aparece no Dashboard, em "A IA anotou sozinha".
+
 ### Preciso rodar algum comando pra ela lembrar?
 
-Não. Ela aprende enquanto vocês conversam. Se quiser uma faxina geral de vez em quando, peça: revisa tudo.
+Não. Ela aprende enquanto vocês conversam, e o anotador confere depois. Se quiser uma faxina geral de vez em quando, peça: revisa tudo.
+
+### Como desligo o anotador?
+
+Em Ajustes → **Aprender sozinho**. Ali também dá pra trocar o modelo dele (Haiku gasta menos; Sonnet é mais cuidadoso) e ver as últimas vezes que ele rodou. Ele usa um pouco do seu plano do Claude. Mensagens curtinhas ("ok", "valeu") não contam, e sem nada novo ele nem chama a IA.
 
 Peça pra IA: `revisa tudo`
 
@@ -126,7 +132,7 @@ Só pra anotar o que você contou (feedback, ideia, decisão, tarefa), e ela sem
 
 ### Como abro o painel?
 
-Dois cliques em `ABRIR-PAINEL.command` (Mac) ou `ABRIR-PAINEL.bat` (Windows). Ou peça pra IA. O endereço é http://localhost:4747.
+Ele abre sozinho quando você começa uma conversa com a IA (se ainda não estiver aberto). Pra abrir na mão: dois cliques em `ABRIR-PAINEL.command` (Mac) ou `ABRIR-PAINEL.bat` (Windows), ou peça pra IA. O endereço é http://localhost:4747 (ou o próximo número livre). Não quer que ele abra sozinho? Ajustes → Sobre o painel → "Abrir o painel sozinho".
 
 Peça pra IA: `abre o painel`
 
@@ -136,9 +142,17 @@ Quase sempre falta o Node. Baixe em nodejs.org (a versão LTS), instale e tente 
 
 Peça pra IA: `O painel não abre. Me ajude.`
 
+### Dá pra deixar o menu menor?
+
+Dá. Clique no quadradinho que fica na borda de cima do menu, à direita: ficam só os ícones (passe o mouse em cima pra ver o nome). Pra abrir de novo, clique nele outra vez. O painel lembra da sua escolha.
+
+### Onde abro o chat com a IA?
+
+No botão redondo do canto de baixo, à direita, em qualquer tela. Ou em **Conversar com a IA**, no menu.
+
 ### Como mudo pra tema claro ou escuro?
 
-No pé do menu tem 3 botões: o sol (claro), o círculo meio a meio (igual ao computador) e a lua (escuro). Também em Ajustes.
+Em Ajustes → Aparência → Tema: claro, escuro ou automático (igual ao computador).
 
 ### Como coloco o meu logo?
 
@@ -165,6 +179,44 @@ Pode. Kanban, botão Novo quadro. O marketing já vem com a "Pauta de conteúdo"
 ### O painel se atualiza sozinho?
 
 Sim. Quando a IA muda um arquivo, a tela muda junto, em segundos.
+
+### Dá pra conversar com a IA dentro do painel?
+
+Dá. Clique em **Conversar com a IA**, no menu. Abre um chat do lado, com a IA que você já tem instalada no computador (Claude Code, Codex ou Gemini), usando a sua conta. Ela segue as mesmas regras e, quando muda um arquivo, a tela se atualiza na hora.
+
+Os botões de "Pedir pra IA" do painel mandam o pedido direto pro chat. A conversa fica só no seu computador (`painel/.chat.json`) e não vai pro GitHub.
+
+### Dá pra escolher o modelo da IA no chat?
+
+Dá. No topo do chat, em **Modelo**. No Claude Code:
+
+- **Sempre o mais novo:** Opus (o mais inteligente), Sonnet (equilibrado) ou Haiku (o mais rápido).
+- **Versão fixa:** Fable 5.2, Opus 5.5, Sonnet 5.5 ou Haiku 5.5.
+- **Outro...:** você escreve o nome de qualquer modelo que a sua conta tenha.
+
+Do lado fica o **Esforço**: o quanto a IA pensa antes de responder (Baixo, Médio, Alto, Extra alto ou Máximo). Mais esforço dá uma resposta melhor, mas mais lenta, e gasta mais do seu plano. "Padrão" usa o que você escolheu no próprio Claude Code.
+
+A troca vale pras próximas mensagens, na mesma conversa. Embaixo de cada resposta aparecem o modelo e o esforço usados.
+
+### O chat diz que o meu Claude Code é antigo. E agora?
+
+Os modelos mais novos (e o esforço Extra alto) precisam de um Claude Code recente. Abra o terminal, rode `claude update` e clique em **Já atualizei**, no topo do chat.
+
+### O chat diz "Nenhuma IA instalada". E agora?
+
+Instale o Claude Code (recomendado), o Codex ou o Gemini. Abra o terminal, rode o nome dele (`claude`, `codex` ou `gemini`) e entre na sua conta. Depois clique em "Já instalei: procurar de novo".
+
+### Como procuro alguma coisa no painel?
+
+Aperte **Cmd+K** (Mac) ou **Ctrl+K** (Windows), ou clique em **Procurar** no menu. A busca olha em todos os arquivos: tarefas, feedbacks, roteiros, a estratégia. Não precisa acento.
+
+### O que é o quadro "Pra arrumar" do Dashboard?
+
+São as coisas velhas ou esquecidas: teste que passou do dia de julgar, decisão pra rever, tarefa atrasada há semanas, feedback que ninguém viu, números sem análise. Só aparece quando tem algo. Clique na estrela pra pedir pra IA arrumar.
+
+### Onde ficam os roteiros e textos que a IA escreveu?
+
+No menu **Saídas**. Cada um tem o botão **Copiar o texto**, já sem as marcas do markdown, pronto pra colar na rede social, no e-mail ou no WhatsApp.
 
 ### Posso usar o painel no celular?
 
@@ -223,6 +275,60 @@ Senhas, chaves e o arquivo `.env` ficam de fora (o `.gitignore` tira). Vídeos e
 
 No Mac: abra o Terminal e digite `git --version`. Se ele pedir, clique em Instalar. No Windows: baixe em git-scm.com e instale clicando em Avançar. O GitHub Desktop já traz o que precisa.
 
+## Mentalidade
+
+### O que é o menu Mentalidade?
+
+É o lugar do seu jeito de pensar. Com o mesmo jeito de pensar, o resultado não muda: por isso a mudança começa por dentro. A tela é uma jornada, nesta ordem:
+
+1. **Entenda:** por que começar por dentro (pensamento → sentimento → ação → resultado) e que você pode mudar.
+2. **O jeito de pensar de quem prospera:** 7 ideias curtas.
+3. **Troca de crenças:** as ideias que te seguram, trocadas pelas que libertam.
+4. **O seu objetivo de vida:** a vida dos seus sonhos, sem limites, por área (saúde, família, dinheiro, trabalho, casa, viagens, quem você se torna, o dia perfeito e o porquê). Travou? Toque em **Me ajude a sonhar**: a IA pergunta área por área e dá ideias.
+5. **O quadro dos sonhos:** duas opções. **Copiar prompt para uma IA de imagem** libera quando você descreve todas as áreas da vida: o painel monta o prompt com tudo o que você escreveu, no formato certo (deitado, 16:9). Você cola numa IA de imagem (ChatGPT, Gemini...) e gera. Depois, em **Vincular meu quadro dos sonhos**, coloca a imagem. Ela aparece no seu sonho e no "Ver e sentir".
+6. **Todo dia:** a frase do dia (são 52, e você pode escrever as suas) e a prática de 5 minutos.
+7. **Diário:** escreva o quanto quiser, com a data de hoje ou a que escolher. Dá pra editar e apagar.
+
+No fim, cada arquivo explica pra que serve, por que usar e como usar. O seu sonho também aparece de leve no painel todo: no menu, no Kanban e no "Comece aqui".
+
+Peça pra IA: `Me ajude a sonhar: me pergunte área por área da minha vida.`
+
+### Como a IA ajuda na mentalidade?
+
+Ela anota o seu sonho, as suas gratidões e as suas boas ações quando você conta. Quando você fala algo como "isso não é pra mim", ela mostra a crença com carinho e te ajuda a trocar. E, no "o que eu faço hoje", ela lembra do passo rumo ao seu sonho e pergunta quem você vai ajudar.
+
+Peça pra IA: `Faz comigo a prática de 5 minutos agora.`
+
+### Como troco uma crença que me trava?
+
+Em Mentalidade → Troca de crenças → **Ver todas**. Lá você:
+
+- escreve a crença que te trava e a nova, e guarda;
+- não sabe a nova? Toque em **Pedir pra IA sugerir a nova**: ela mostra de onde a crença costuma vir e sugere crenças de prosperidade, abundância e sucesso;
+- não sabe quais são as suas? Toque em **Me ajude a descobrir**: a IA faz perguntas curtas, uma de cada vez;
+- reconheceu uma das mais comuns? Toque em **Também tenho essa**.
+
+Peça pra IA: `Tenho uma crença que me trava: `
+
+### Como coloco as minhas frases do dia?
+
+Em Mentalidade → Todo dia, no cartão da frase:
+
+- **Outra frase:** troca por outra, se aquela não tocou hoje;
+- **Escrever a minha:** você escreve uma frase sua (curta, no presente, "Eu sou...", "Eu tenho..."). As suas aparecem dia sim, dia não;
+- **Ver todas:** as 52 frases, por tema, e as suas. Lá tem o botão **Criar frases pra mim**: a IA lê o seu sonho e as suas crenças e cria frases feitas pra você.
+
+### Como uso o diário?
+
+Em Mentalidade → Diário (ou em **Ver o diário inteiro**):
+
+- escreva o quanto quiser. A data de hoje já vem marcada; quer outra? É só trocar;
+- os botões **Agradeço por**, **Hoje eu ajudei** e **Vitória do dia** começam uma linha pra você;
+- cada nota tem o lápis (editar) e a lixeira (apagar). Dá pra mudar a data na hora de editar;
+- as notas ficam organizadas por data, a mais nova em cima. Se a página fechar no meio, o que você estava escrevendo volta.
+
+Também dá pra contar pra IA (`Hoje eu agradeço por: `): ela anota no diário.
+
 ## Marketing
 
 ### Como a IA descobre o que funciona no meu marketing?
@@ -239,7 +345,18 @@ Peça pra IA: `analisa meus números`
 
 Mande o link (ou o vídeo) pra IA e peça pra estudar. Ela anota em `marketing/virais/` e transforma em teste.
 
+Ou use a tela **Ferramentas**:
+
+- **Baixar um vídeo:** cole o link. Embaixo, em **Vídeos baixados**, cada vídeo tem **Estudar o vídeo** (o visual: as cenas, o ritmo, o texto na tela) e **Estudar a fala** (o roteiro: o gancho, a promessa, as viradas e o fim).
+- **Transcrever:** arraste um áudio ou vídeo do computador. Embaixo, em **Transcrições de arquivos do computador**, cada uma tem **Estudar com a IA** (o resumo, as ideias, as frases fortes e o que vira conteúdo).
+
 Peça pra IA: `Estude esse vídeo que viralizou: `
+
+### Como acho o padrão de vários vídeos?
+
+Na tela **Ferramentas**, marque a caixinha dos vídeos e dos roteiros que quer comparar (ou toque em **Selecionar todos**). Aparece uma barra embaixo: toque em **Estudar os selecionados juntos**. A IA estuda a imagem, o texto, o roteiro e os padrões virais de todos, conta quantos têm cada padrão (ex.: 4 de 5), monta um roteiro modelo e um guia visual, e salva em `marketing/virais/`.
+
+Peça pra IA: `Estude esses vídeos juntos e ache os padrões: `
 
 ### Como faço um roteiro?
 
@@ -252,6 +369,16 @@ Peça pra IA: `Escreva um roteiro sobre: `
 Mudar UMA coisa (o título, o começo, o horário) e medir UM número pra ver se melhora. Fica em `marketing/testes.md`.
 
 Peça pra IA: `Qual teste eu faço agora?`
+
+### Onde vejo os meus testes?
+
+Em Marketing → **Testes**. Lá aparecem os testes rodando, quantos dias faltam pra julgar e o que virou regra. O dia de julgar também aparece no cronograma do Dashboard. Na hora de julgar, clique em **Julgar**, escreva o que o número mostrou e escolha: virou regra, não funciona ou testar de novo.
+
+### Onde vejo o gráfico dos meus números?
+
+Em Marketing → **Números**. O gráfico sai dos placares que a IA escreve quando analisa os seus números (`marketing/numeros/placar-...md`). Cada barra é um conteúdo. A linha tracejada é a mediana (o do meio).
+
+Peça pra IA: `analisa meus números`
 
 ### Por que o "O que funciona" está vazio?
 

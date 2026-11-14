@@ -13,19 +13,18 @@ Leva uns 15 minutos. Dá pra parar e voltar quando quiser.
 
 Baixe a versão **LTS** em https://nodejs.org e instale. É o que faz o painel funcionar.
 
-## 3. Abra a pasta na sua IA
+## 3. Abra a pasta na sua IA e diga oi
 
 Claude Code, Codex, Cursor, Gemini CLI, GitHub Copilot ou outra que mexa em arquivos.
 
-## 4. Escreva: `configurar`
+Na primeira conversa, a IA:
 
-A IA pergunta o tipo do seu negócio e o resto, uma coisa por vez. Não sabe? Diga "pula".
+- abre o painel no navegador (se ela pedir licença pra rodar um comando, deixe);
+- começa a configurar com você: pergunta o tipo do seu negócio e o resto, uma coisa por vez. Não sabe? Diga "pula". Quer parar? É só dizer, e depois escreva `configurar` pra continuar.
 
-## 5. Abra o painel
+O painel não abriu? Dois cliques em **ABRIR-PAINEL.command** (Mac) ou **ABRIR-PAINEL.bat** (Windows). Ou peça pra IA: `abre o painel`.
 
-Dois cliques em **ABRIR-PAINEL.command** (Mac) ou **ABRIR-PAINEL.bat** (Windows). Ou peça pra IA: `abre o painel`.
-
-## 6. Ligue no GitHub
+## 4. Ligue no GitHub
 
 Escreva pra IA: `salvar no github`. Assim você nunca perde nada.
 

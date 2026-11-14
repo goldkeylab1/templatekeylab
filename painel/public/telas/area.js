@@ -1,6 +1,6 @@
 // Página de uma área (Meu negócio, Marketing, Projetos e as que você criar).
 // Mostra os arquivos da pasta, as subpastas, os pedidos prontos e os destaques do topo.
-import { h, ic, api, cabeca, markdown, miniAnel, pedido, vazio, quandoFoi } from '../ui.js';
+import { h, ic, api, cabeca, markdown, miniAnel, pedido, vazio, quandoFoi, temChat } from '../ui.js';
 
 function temConteudo(texto) {
   return String(texto || '')
@@ -48,13 +48,13 @@ function semTitulosVazios(texto) {
 }
 
 function iconeDoArquivo(f) {
-  if (f.tipo === 'configurar') return miniAnel(f.pct);
+  if (f.tipo === 'configurar' || f.tipo === 'formulario') return miniAnel(f.pct);
   const nome = { kanban: 'colunas', dados: 'tabela', molde: 'copiar', texto: 'texto' }[f.tipo] || 'texto';
   return h('span', { class: 'ico-arq' }, ic(nome));
 }
 
 function descricaoDoArquivo(f) {
-  if (f.tipo === 'configurar') {
+  if (f.tipo === 'configurar' || f.tipo === 'formulario') {
     if (f.pct >= 100) return 'Pronto';
     const faltam = f.total - f.feitos;
     return `${faltam} ${faltam === 1 ? 'resposta falta' : 'respostas faltam'}`;
@@ -62,6 +62,28 @@ function descricaoDoArquivo(f) {
   if (f.tipo === 'kanban') return 'Quadro do kanban';
   if (f.tipo === 'molde') return 'Molde (a IA copia pra criar um novo)';
   return f.descricao || (f.atualizado ? `Mudou ${quandoFoi(f.atualizado)}` : '');
+}
+
+// Áreas que têm uma tela só delas (no lugar da página padrão)
+const TELAS_PROPRIAS = {
+  mentalidade: () => import('./mentalidade.js'),
+};
+
+// Telas especiais que uma área pode mostrar no topo ("- **Telas (opcional):** testes, numeros" no LEIA-ME)
+const TELAS_EXTRAS = {
+  testes: { nome: 'Testes', icone: 'alvo', href: '#/testes', texto: 'Os testes rodando e o que virou regra' },
+  numeros: { nome: 'Números', icone: 'grafico', href: '#/numeros', texto: 'O gráfico dos seus números' },
+  saidas: { nome: 'Saídas', icone: 'bandeja', href: '#/saidas', texto: 'O que a IA criou, pronto pra copiar' },
+  ferramentas: { nome: 'Ferramentas', icone: 'ferramenta', href: '#/ferramentas', texto: 'Baixar e transcrever vídeos' },
+};
+
+function atalhos(telas) {
+  const lista = (telas || []).map((t) => TELAS_EXTRAS[t]).filter(Boolean);
+  if (!lista.length) return null;
+  return h('div', { class: 'grade-cartoes atalhos' }, lista.map((t) => h('a', { class: 'arquivo-item atalho vidro', href: t.href },
+    h('span', { class: 'ico-arq' }, ic(t.icone)),
+    h('span', { class: 'corpo' }, h('span', { class: 't', style: 'display:block' }, t.nome), h('span', { class: 'd', style: 'display:block' }, t.texto)),
+    h('span', { class: 'fraco' }, ic('seta')))));
 }
 
 export function itemDeArquivo(f) {
@@ -86,12 +108,20 @@ function destaque(t) {
 export async function montar(alvo, ctx) {
   const id = ctx.rota.resto[0];
   const a = await api(`/api/area?id=${encodeURIComponent(id || '')}`);
+  // Área com tela própria ("Tela própria (opcional)" no LEIA-ME)
+  if (TELAS_PROPRIAS[a.telaPropria]) {
+    const mod = await TELAS_PROPRIAS[a.telaPropria]();
+    return mod.montar(alvo, ctx, a);
+  }
 
   alvo.append(cabeca({
     titulo: a.titulo || a.nome,
     texto: a.descricao,
     acoes: [h('a', { class: 'botao', href: `#/arquivo?c=${encodeURIComponent(a.leiame)}` }, ic('texto'), 'Como funciona')],
   }));
+
+  const barraDeAtalhos = atalhos(a.telas);
+  if (barraDeAtalhos) alvo.append(barraDeAtalhos);
 
   const esquerda = h('div', { class: 'pilha' });
   const direita = h('div', { class: 'pilha' });
@@ -123,7 +153,7 @@ export async function montar(alvo, ctx) {
   if (a.pedidos.length) {
     direita.append(h('section', { class: 'painel vidro' },
       h('h2', null, 'Peça pra IA'),
-      h('p', { class: 'suave pequeno', style: 'margin:6px 0 12px' }, 'Clique pra copiar. Depois é só colar na sua IA (e completar, se terminar em dois-pontos).'),
+      h('p', { class: 'suave pequeno', style: 'margin:6px 0 12px' }, temChat() ? 'Clique e a IA faz, no chat do lado (se terminar em dois-pontos, você completa antes).' : 'Clique pra copiar. Depois é só colar na sua IA (e completar, se terminar em dois-pontos).'),
       h('div', { class: 'pedidos' }, a.pedidos.map((p) => pedido(p)))));
   }
 
