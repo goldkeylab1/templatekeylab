@@ -1,7 +1,7 @@
 // Ferramentas: baixar um vídeo pra estudar e transcrever áudio e vídeo. Tudo roda neste computador.
 // O download quem faz é o painel (lib/baixador.js). As fotos das cenas e a transcrição saem aqui, no navegador, uma de
 // cada vez, e continuam mesmo trocando de tela (o estado fica neste módulo, não na tela).
-import { h, ic, api, aviso, falhou, cabeca, confirmar, copiar, janela, barra, vazio } from '../ui.js';
+import { h, ic, api, aviso, falhou, cabeca, confirmar, copiar, janela, barra, vazio, pedirIA } from '../ui.js';
 import * as M from '../ferramentas/motor.js';
 
 const lerLocal = (k, d) => { try { return localStorage.getItem(k) || d; } catch { return d; } };
@@ -477,7 +477,7 @@ function cartaoDoVideo(v) {
       numeros ? h('div', { class: 'meta' }, numeros) : null,
       h('div', { class: 'chips', 'data-chips': v.pasta }, chipFotos(v), chipTexto(v), v.estudado ? h('span', { class: 'chip cheio' }, ic('check'), 'estudado') : null),
       h('div', { class: 'acoes' },
-        h('button', { type: 'button', class: 'botao principal pequeno', onclick: () => copiar(pedidoPraIA(v), 'Pedido copiado. Cole na sua IA.') }, ic('ia'), 'Estudar com a IA'),
+        h('button', { type: 'button', class: 'botao principal pequeno', onclick: () => pedirIA(pedidoPraIA(v), { mensagem: 'Pedido copiado. Cole na sua IA.' }) }, ic('ia'), 'Estudar com a IA'),
         v.transcricao ? h('button', { type: 'button', class: 'botao pequeno', onclick: () => verTexto('virais', v.pasta, v.titulo) }, ic('texto'), 'Ver o texto') : null,
         v.mosaicos ? h('button', { type: 'button', class: 'botao pequeno', onclick: () => verFotos(v) }, ic('grade'), 'Ver as fotos') : null,
         erroFotos ? h('button', { type: 'button', class: 'botao pequeno', onclick: () => { delete est.erros[`fotos:${v.pasta}`]; agir('/api/ferramentas/fotos-de-novo', { pasta: v.pasta }); } }, ic('recarregar'), 'Tirar as fotos de novo') : null,

@@ -27,6 +27,13 @@ const { vigiar } = require('./lib/vigia');
 const { ErroPainel } = require('./lib/erro');
 const baixador = require('./lib/baixador');
 const ferramentas = require('./lib/ferramentas');
+const testes = require('./lib/testes');
+const saidas = require('./lib/saidas');
+const numeros = require('./lib/numeros');
+const busca = require('./lib/busca');
+const saude = require('./lib/saude');
+const chat = require('./lib/chat');
+const anotador = require('./lib/anotador');
 
 const VERSAO = require('../package.json').version || '1.0.0';
 const PUBLICO = path.join(__dirname, 'public');
@@ -130,6 +137,9 @@ function dashboard() {
   return {
     cronograma: cronograma.ler(),
     cartoes: kanban.cartoesComData(),
+    prazos: testes.prazos(),
+    avisos: saude.avisos(),
+    anotados: anotador.ultimos(12).filter((e) => (e.itens || []).length && Date.now() - e.quando < 7 * 86400000).slice(0, 5),
     fazendo: kanban.emAndamento(),
     feedbacks: fb.feedbacks.filter((f) => md.chave(f.status) === 'novo').slice(0, 3),
     feedbacksNovos: fb.feedbacks.filter((f) => md.chave(f.status) === 'novo').length,
@@ -151,6 +161,13 @@ const GET = {
   '/api/kanban': () => ({ quadros: kanban.listarQuadros() }),
   '/api/feedbacks': () => registros.lerFeedbacks(),
   '/api/ideias': () => registros.lerIdeias(),
+  '/api/testes': () => testes.lerTestes(),
+  '/api/saidas': () => saidas.listarSaidas(),
+  '/api/saidas/texto': (q) => saidas.textoDaSaida(q.get('caminho')),
+  '/api/numeros': () => numeros.lerNumeros(),
+  '/api/busca': (q) => busca.procurar(q.get('q') || ''),
+  '/api/chat': (q) => chat.estado({ deNovo: q.get('procurar') === '1' }),
+  '/api/anotador': () => anotador.estado({ git: git.estado(), temClaude: !!chat.caminhos().claude }),
   '/api/area': (q) => areas.paginaDaArea(q.get('id')),
   '/api/arquivo': (q) => areas.lerArquivo(q.get('caminho')),
   '/api/ajuda': () => lerAjuda(),
@@ -178,6 +195,15 @@ const POST = {
   '/api/kanban': (d) => kanban.agir(d),
   '/api/feedbacks': (d) => registros.agirFeedbacks(d),
   '/api/ideias': (d) => registros.agirIdeias(d),
+  '/api/testes': (d) => testes.agirTestes(d),
+  '/api/decisoes/revista': (d) => testes.marcarRevista(d),
+  '/api/chat/enviar': (d) => chat.enviar(d),
+  '/api/chat/parar': () => chat.parar(),
+  '/api/chat/nova': () => chat.novaConversa(),
+  '/api/chat/ia': (d) => chat.escolher(d.id),
+  '/api/chat/modelo': (d) => chat.escolherModelo(d.modelo),
+  '/api/chat/esforco': (d) => chat.escolherEsforco(d.esforco),
+  '/api/anotador': (d) => anotador.ajustar(d),
   '/api/arquivo/campos': (d) => areas.salvarCampos(d.caminho, d.mudancas),
   '/api/arquivo/texto': (d) => areas.salvarTexto(d.caminho, d.texto, d.versao),
   '/api/arquivo/marcar': (d) => areas.marcarCaixa(d.caminho, d),
@@ -292,10 +318,11 @@ async function ligar() {
   }
   porta.gravarInfo(portaAtual);
   vigiar(avisar);
+  chat.iniciar((dados) => mandarEvento('chat', dados));
   const endereco = porta.url(portaAtual);
   console.log(`\n  Painel ligado: ${endereco}\n  Pasta: ${RAIZ}\n  Pra desligar: feche essa janela ou aperte Ctrl+C.\n`);
   if (ABRIR) porta.abrirNavegador(endereco);
-  const sair = () => { porta.apagarInfo(); process.exit(0); };
+  const sair = () => { chat.parar(); porta.apagarInfo(); process.exit(0); };
   process.on('SIGINT', sair);
   process.on('SIGTERM', sair);
   process.on('exit', () => porta.apagarInfo());

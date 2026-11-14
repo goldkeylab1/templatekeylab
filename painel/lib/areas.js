@@ -38,6 +38,7 @@ function lerArea(dirAbs) {
     descricao: md.descricaoDoArquivo(linhas),
     topo: listaDeTexto(valor(linhas, 'mostrar no topo')),
     tambem: listaDeTexto(valor(linhas, 'mostrar tambem')),
+    telas: listaDeTexto(valor(linhas, 'telas')).map((t) => md.chave(t).replace(/\s+/g, '-')),
     pedidos: pedidos ? pedidos.itens.map((p) => p.replace(/^["“]|["”]$/g, '').replace(/`/g, '')) : [],
     leiame: relativo(leia),
   };

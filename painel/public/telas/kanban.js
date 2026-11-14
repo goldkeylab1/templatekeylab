@@ -1,5 +1,5 @@
 // Kanban: um quadro por arquivo .md com o marcador de kanban. Arraste os cartões entre as colunas.
-import { h, ic, api, aviso, falhou, cabeca, janela, confirmar, pedirTexto, dataCurta, hoje, vazio, copiar } from '../ui.js';
+import { h, ic, api, aviso, falhou, cabeca, janela, confirmar, pedirTexto, dataCurta, hoje, vazio, copiar, pedirIA } from '../ui.js';
 
 const escolha = {
   get quadro() { try { return localStorage.getItem('keylab-quadro') || ''; } catch { return ''; } },
@@ -214,7 +214,7 @@ export async function montar(alvo, ctx) {
     type: 'button',
     class: 'botao leve pequeno',
     title: 'Copiar pedido pra IA',
-    onclick: () => copiar(`Olhe o quadro "${atual.titulo}" (${atual.arquivo}) e me diga o que está parado, o que está atrasado e o que eu faço primeiro.`),
+    onclick: () => pedirIA(`Olhe o quadro "${atual.titulo}" (${atual.arquivo}) e me diga o que está parado, o que está atrasado e o que eu faço primeiro.`),
   }, ic('ia'), 'Pedir análise pra IA')));
 
   alvo.append(h('div', { class: 'quadro' },

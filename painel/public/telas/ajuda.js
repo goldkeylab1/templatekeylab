@@ -1,11 +1,11 @@
 // Ajuda: perguntas e respostas curtas (AJUDA.md), com busca e o pedido pronto pra IA.
-import { h, ic, api, cabeca, markdown, pedido, chave } from '../ui.js';
+import { h, ic, api, cabeca, markdown, pedido, chave, temChat } from '../ui.js';
 
 export async function montar(alvo, ctx) {
   const { temas } = await api('/api/ajuda');
   const inicial = ctx.rota.params.get('q') || '';
 
-  alvo.append(cabeca({ titulo: 'Ajuda', texto: 'Perguntas curtas, respostas curtas. Toda resposta tem um pedido pronto: copie e cole na sua IA.' }));
+  alvo.append(cabeca({ titulo: 'Ajuda', texto: temChat() ? 'Perguntas curtas, respostas curtas. Toda resposta tem um pedido pronto: clique e a IA faz, no chat do lado.' : 'Perguntas curtas, respostas curtas. Toda resposta tem um pedido pronto: copie e cole na sua IA.' }));
 
   const busca = h('input', { class: 'entrada', type: 'search', placeholder: 'Procure: github, logo, kanban, área nova...', 'aria-label': 'Procurar na ajuda', value: inicial });
   const lista = h('div');

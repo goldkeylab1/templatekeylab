@@ -31,7 +31,7 @@ Tudo em arquivos de texto simples (`.md`). Você abre a pasta na sua IA e conver
 - **segue receitas** prontas pras tarefas que se repetem;
 - **descobre o que funciona** no seu marketing, com os seus números.
 
-E um **painel web** mostra tudo: o que falta configurar, o cronograma, o kanban, os feedbacks, as ideias e a ajuda.
+E um **painel web** mostra tudo: o que falta configurar, o cronograma, o kanban, os testes, o gráfico dos números, o que a IA escreveu, os feedbacks, as ideias e a ajuda. Tem busca (Cmd+K) e um **chat com a sua IA** do lado.
 
 Não precisa saber programar. Não precisa instalar nenhuma biblioteca.
 
@@ -117,11 +117,12 @@ Depois de cada mensagem sua, a IA vê se tem algo pra guardar. Se tiver, salva n
 | conta que um trabalho andou | o kanban |
 | manda números | `marketing/numeros/` |
 
-Não precisa de comando nenhum pra ela lembrar. No Claude Code, três ganchos (em `.claude/settings.json`) garantem isso:
+Não precisa de comando nenhum pra ela lembrar. No Claude Code, os ganchos (em `.claude/settings.json`) garantem isso:
 
 1. **No começo da conversa:** um resumo do que falta configurar, das tarefas do dia e do GitHub. E o painel liga sozinho.
 2. **Em cada mensagem:** um lembrete curto de "aprender sozinho" (o texto fica em `.claude/lembrete.txt`).
-3. **No fim de cada resposta:** se você ligou "Salvar sozinho", a pasta vai pro GitHub.
+3. **A cada 5 mensagens e no fim da conversa:** um anotador escondido (com o Haiku, o modelo mais barato) lê só as mensagens novas e anota o que a IA deixou passar. Dá pra desligar em Ajustes.
+4. **No fim de cada resposta:** se você ligou "Salvar sozinho", a pasta vai pro GitHub.
 
 E ela é honesta: questiona quando falta uma peça, confronta quando os números dizem outra coisa e só elogia com motivo. A palavra final é sempre sua.
 

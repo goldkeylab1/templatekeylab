@@ -54,3 +54,4 @@
 - **Ícone:** megafone
 - **Ordem:** 50
 - **Mostrar no topo (opcional):** o-que-funciona.md
+- **Telas (opcional):** testes, numeros

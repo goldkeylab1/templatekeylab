@@ -16,6 +16,8 @@ const fundo = args.includes('--fundo');
 const mensagem = args.filter((a) => !a.startsWith('--')).join(' ').trim();
 
 async function principal() {
+  // dentro da sessão escondida do anotador, quem salva é o próprio anotador (quando termina)
+  if (auto && process.env.PAINEL_ANOTADOR === '1') return;
   if (fundo) {
     const filho = spawn(process.execPath, [path.join(__dirname, 'salvar.js'), ...args.filter((a) => a !== '--fundo')], {
       detached: true, stdio: 'ignore', windowsHide: true,

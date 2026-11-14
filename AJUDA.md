@@ -80,9 +80,15 @@ Use uma pasta pra cada negócio (baixe o modelo de novo). Cada um tem o seu cér
 
 Depois de cada mensagem sua, ela vê se tem algo pra guardar (feedback, ideia, decisão, correção, tarefa) e anota no arquivo certo, sozinha. No fim da resposta ela avisa: "Anotei: ...".
 
+No Claude Code (e no chat do painel) tem mais uma garantia: um **anotador** escondido confere a conversa a cada 5 mensagens suas e sempre no fim, e anota o que a IA deixou passar (por exemplo, quando ela estava focada numa tarefa grande). Ele usa o Haiku, o modelo mais barato, e só lê as mensagens novas. O que ele anotou aparece no Dashboard, em "A IA anotou sozinha".
+
 ### Preciso rodar algum comando pra ela lembrar?
 
-Não. Ela aprende enquanto vocês conversam. Se quiser uma faxina geral de vez em quando, peça: revisa tudo.
+Não. Ela aprende enquanto vocês conversam, e o anotador confere depois. Se quiser uma faxina geral de vez em quando, peça: revisa tudo.
+
+### Como desligo o anotador?
+
+Em Ajustes → **Aprender sozinho**. Ali também dá pra trocar o modelo dele (Haiku gasta menos; Sonnet é mais cuidadoso) e ver as últimas vezes que ele rodou. Ele usa um pouco do seu plano do Claude. Mensagens curtinhas ("ok", "valeu") não contam, e sem nada novo ele nem chama a IA.
 
 Peça pra IA: `revisa tudo`
 
@@ -165,6 +171,44 @@ Pode. Kanban, botão Novo quadro. O marketing já vem com a "Pauta de conteúdo"
 ### O painel se atualiza sozinho?
 
 Sim. Quando a IA muda um arquivo, a tela muda junto, em segundos.
+
+### Dá pra conversar com a IA dentro do painel?
+
+Dá. Clique em **Conversar com a IA**, no menu. Abre um chat do lado, com a IA que você já tem instalada no computador (Claude Code, Codex ou Gemini), usando a sua conta. Ela segue as mesmas regras e, quando muda um arquivo, a tela se atualiza na hora.
+
+Os botões de "Pedir pra IA" do painel mandam o pedido direto pro chat. A conversa fica só no seu computador (`painel/.chat.json`) e não vai pro GitHub.
+
+### Dá pra escolher o modelo da IA no chat?
+
+Dá. No topo do chat, em **Modelo**. No Claude Code:
+
+- **Sempre o mais novo:** Opus (o mais inteligente), Sonnet (equilibrado) ou Haiku (o mais rápido).
+- **Versão fixa:** Fable 5.2, Opus 5.5, Sonnet 5.5 ou Haiku 5.5.
+- **Outro...:** você escreve o nome de qualquer modelo que a sua conta tenha.
+
+Do lado fica o **Esforço**: o quanto a IA pensa antes de responder (Baixo, Médio, Alto, Extra alto ou Máximo). Mais esforço dá uma resposta melhor, mas mais lenta, e gasta mais do seu plano. "Padrão" usa o que você escolheu no próprio Claude Code.
+
+A troca vale pras próximas mensagens, na mesma conversa. Embaixo de cada resposta aparecem o modelo e o esforço usados.
+
+### O chat diz que o meu Claude Code é antigo. E agora?
+
+Os modelos mais novos (e o esforço Extra alto) precisam de um Claude Code recente. Abra o terminal, rode `claude update` e clique em **Já atualizei**, no topo do chat.
+
+### O chat diz "Nenhuma IA instalada". E agora?
+
+Instale o Claude Code (recomendado), o Codex ou o Gemini. Abra o terminal, rode o nome dele (`claude`, `codex` ou `gemini`) e entre na sua conta. Depois clique em "Já instalei: procurar de novo".
+
+### Como procuro alguma coisa no painel?
+
+Aperte **Cmd+K** (Mac) ou **Ctrl+K** (Windows), ou clique em **Procurar** no menu. A busca olha em todos os arquivos: tarefas, feedbacks, roteiros, a estratégia. Não precisa acento.
+
+### O que é o quadro "Pra arrumar" do Dashboard?
+
+São as coisas velhas ou esquecidas: teste que passou do dia de julgar, decisão pra rever, tarefa atrasada há semanas, feedback que ninguém viu, números sem análise. Só aparece quando tem algo. Clique na estrela pra pedir pra IA arrumar.
+
+### Onde ficam os roteiros e textos que a IA escreveu?
+
+No menu **Saídas**. Cada um tem o botão **Copiar o texto**, já sem as marcas do markdown, pronto pra colar na rede social, no e-mail ou no WhatsApp.
 
 ### Posso usar o painel no celular?
 
@@ -252,6 +296,16 @@ Peça pra IA: `Escreva um roteiro sobre: `
 Mudar UMA coisa (o título, o começo, o horário) e medir UM número pra ver se melhora. Fica em `marketing/testes.md`.
 
 Peça pra IA: `Qual teste eu faço agora?`
+
+### Onde vejo os meus testes?
+
+Em Marketing → **Testes**. Lá aparecem os testes rodando, quantos dias faltam pra julgar e o que virou regra. O dia de julgar também aparece no cronograma do Dashboard. Na hora de julgar, clique em **Julgar**, escreva o que o número mostrou e escolha: virou regra, não funciona ou testar de novo.
+
+### Onde vejo o gráfico dos meus números?
+
+Em Marketing → **Números**. O gráfico sai dos placares que a IA escreve quando analisa os seus números (`marketing/numeros/placar-...md`). Cada barra é um conteúdo. A linha tracejada é a mediana (o do meio).
+
+Peça pra IA: `analisa meus números`
 
 ### Por que o "O que funciona" está vazio?
 

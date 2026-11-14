@@ -222,9 +222,21 @@ export function barra(pct) {
 
 // ---------- pedidos pra IA ----------
 
+// Com o chat do painel ligado (a IA instalada no computador), o pedido vai direto pra conversa.
+// Sem chat, copia: o dono cola na IA que usa.
+export function temChat() {
+  return !!(window.__chat && window.__chat.disponivel());
+}
+
+export function pedirIA(texto, { mensagem } = {}) {
+  if (temChat()) { window.__chat.pedir(texto); return; }
+  copiar(texto, mensagem);
+}
+
 export function pedido(texto, { rotulo } = {}) {
-  return h('button', { type: 'button', class: 'pedido', title: 'Copiar e colar na sua IA', onclick: () => copiar(texto) },
-    ic('ia'), h('span', null, rotulo || texto), h('span', { class: 'copiar-txt' }, 'Copiar'));
+  const chat = temChat();
+  return h('button', { type: 'button', class: 'pedido', title: chat ? 'Mandar pro chat com a IA' : 'Copiar e colar na sua IA', onclick: () => pedirIA(texto) },
+    ic('ia'), h('span', null, rotulo || texto), h('span', { class: 'copiar-txt' }, chat ? 'Pedir' : 'Copiar'));
 }
 
 export function vazio({ titulo, texto, pedido: p, acao }) {

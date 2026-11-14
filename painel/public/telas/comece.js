@@ -1,5 +1,5 @@
 // Comece aqui: o quanto já está configurado, o próximo passo e o passo a passo.
-import { h, ic, api, anel, barra, pedido, copiar, cabeca, falhou } from '../ui.js';
+import { h, ic, api, anel, barra, pedido, copiar, cabeca, falhou, pedirIA, temChat } from '../ui.js';
 
 function pedidoDoArquivo(item) {
   return `Vamos preencher "${item.titulo}" (${item.caminho}). Me faça as perguntas que faltam, uma de cada vez, e anote as respostas no arquivo.`;
@@ -10,7 +10,7 @@ function proximoPasso(item) {
     return h('div', { class: 'proximo' },
       h('div', { class: 't' }, h('b', null, 'Próximo: ligar no GitHub'), h('div', { class: 'suave pequeno' }, item.faltam[0] || item.texto)),
       h('a', { class: 'botao principal', href: '#/ajuda?q=github' }, 'Ver como'),
-      h('button', { type: 'button', class: 'botao', onclick: () => copiar('salvar no github') }, ic('ia'), 'Copiar pedido pra IA'));
+      h('button', { type: 'button', class: 'botao', onclick: () => pedirIA('salvar no github') }, ic('ia'), temChat() ? 'Pedir pra IA' : 'Copiar pedido pra IA'));
   }
   const faltam = item.total - item.feitos;
   return h('div', { class: 'proximo' },
@@ -18,7 +18,7 @@ function proximoPasso(item) {
       h('b', null, `Próximo: ${item.titulo}`),
       h('div', { class: 'suave pequeno' }, `${faltam} ${faltam === 1 ? 'resposta falta' : 'respostas faltam'} em ${item.area}`)),
     h('a', { class: 'botao principal', href: `#/arquivo?c=${encodeURIComponent(item.caminho)}` }, ic('lapis'), 'Responder aqui'),
-    h('button', { type: 'button', class: 'botao', onclick: () => copiar(pedidoDoArquivo(item)) }, ic('ia'), 'Copiar pedido pra IA'));
+    h('button', { type: 'button', class: 'botao', onclick: () => pedirIA(pedidoDoArquivo(item)) }, ic('ia'), temChat() ? 'Fazer com a IA' : 'Copiar pedido pra IA'));
 }
 
 function itemDeStatus(item) {
@@ -34,7 +34,7 @@ function itemDeStatus(item) {
     ? h('div', { class: 'acoes-item' }, pronto ? null : h('a', { class: 'botao pequeno', href: '#/ajustes' }, 'Ver'))
     : h('div', { class: 'acoes-item' },
       h('a', { class: 'botao pequeno', href: `#/arquivo?c=${encodeURIComponent(item.caminho)}` }, pronto ? 'Ver' : 'Responder'),
-      pronto ? null : h('button', { type: 'button', class: 'icone-botao', title: 'Copiar pedido pra IA', 'aria-label': 'Copiar pedido pra IA', onclick: () => copiar(pedidoDoArquivo(item)) }, ic('ia')));
+      pronto ? null : h('button', { type: 'button', class: 'icone-botao', title: 'Pedir pra IA', 'aria-label': 'Pedir pra IA', onclick: () => pedirIA(pedidoDoArquivo(item)) }, ic('ia')));
   const conta = item.tipo === 'github' ? (pronto ? 'ligado' : 'falta') : `${item.feitos} de ${item.total}`;
   return h('div', { class: `status-item${pronto ? ' pronto' : ''}` },
     h('span', { class: 'ico-status' }, ic(pronto ? 'check' : item.icone || 'pasta')),
@@ -83,7 +83,7 @@ export async function montar(alvo, ctx) {
       feito: negocioPronto,
       titulo: 'Configure o negócio',
       texto: 'Escreva "configurar". A IA faz perguntas curtas, uma de cada vez, e anota tudo nos arquivos.',
-      acao: h('button', { type: 'button', class: 'botao pequeno', onclick: () => copiar('configurar') }, ic('copiar'), 'Copiar'),
+      acao: h('button', { type: 'button', class: 'botao pequeno', onclick: () => pedirIA('configurar') }, ic(temChat() ? 'ia' : 'copiar'), temChat() ? 'Começar' : 'Copiar'),
     }),
     passo({
       feito: !!(marca.logo && marca.cor),
@@ -95,7 +95,7 @@ export async function montar(alvo, ctx) {
       feito: github && github.pct >= 100,
       titulo: 'Ligue no GitHub',
       texto: 'Uma cópia na nuvem, pra nunca perder nada. Escreva "salvar no github" e a IA te guia.',
-      acao: h('button', { type: 'button', class: 'botao pequeno', onclick: () => copiar('salvar no github') }, ic('copiar'), 'Copiar'),
+      acao: h('button', { type: 'button', class: 'botao pequeno', onclick: () => pedirIA('salvar no github') }, ic(temChat() ? 'ia' : 'copiar'), temChat() ? 'Começar' : 'Copiar'),
     }),
     passo({
       feito: usando,

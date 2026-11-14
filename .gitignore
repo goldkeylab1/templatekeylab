@@ -9,6 +9,10 @@ credenciais*
 # Coisas do painel neste computador
 painel/.porta
 painel/.painel.log
+# A conversa do chat com a IA (fica só neste computador)
+painel/.chat.json
+# O anotador (a marca de até onde leu cada conversa e o registro do que anotou)
+painel/.anotador*
 *.tmp-*
 # O baixador de vídeo (o painel baixa sozinho na primeira vez)
 .ferramentas/

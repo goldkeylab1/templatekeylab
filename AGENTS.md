@@ -10,7 +10,7 @@ Esta pasta é o **cérebro de um negócio**: quem é o negócio, pra quem vende,
 2. Leia `negocio/empresa.md`, `negocio/estrategia.md`, `negocio/voz.md` e `memoria/preferencias.md`.
 3. Se a configuração estiver incompleta, ofereça continuar, uma vez só por conversa: "Falta configurar X. Quer fazer agora?"
 4. Use o que leu em tudo que fizer. Não liste o que leu.
-5. Na sua primeira resposta, ponha no fim o link do painel.
+5. Na sua primeira resposta, ponha no fim o link do painel (menos quando a conversa vier do chat que fica dentro do painel).
 
 ## 2. Como falar com o dono
 
@@ -60,6 +60,8 @@ Regras de salvar:
 5. A informação nova contradiz o que já está salvo? Pergunte qual vale. Depois troque.
 6. Nunca salve senha, chave de API, token, número de cartão, CPF, CNPJ, RG ou dado de banco. Se o dono mandar, avise que não guarda.
 7. Conversa sem informação nova (pergunta simples, "valeu"): não salve nada.
+
+No Claude Code (e no chat do painel), um anotador confere a conversa sozinho, a cada 5 mensagens do dono e no fim dela, e anota o que ficou pra trás (`painel/anotar.js`). Continue anotando na hora: ele só pega o que escapou.
 
 ## 5. Antes de uma tarefa
 
@@ -121,6 +123,7 @@ Receitas que você criar depois também entram nesta tabela.
 - Abre com `node painel/ligar.js --abrir` (ou o dono dá dois cliques em ABRIR-PAINEL). Endereço: http://localhost:4747, ou o que o `painel/contexto.js` mostrar.
 - A tela Ferramentas baixa um vídeo de um link (YouTube, Instagram, TikTok e outros), tira as fotos das cenas e transcreve, tudo no computador do dono. Pela IA: `npm run baixar -- "<link>" --esperar`.
 - O painel lê e escreve os mesmos arquivos. Quando você muda um arquivo, a tela se atualiza sozinha.
+- O painel tem um chat do lado (botão "Conversar com a IA"). Ele chama a IA instalada no computador do dono (Claude Code, Codex ou Gemini), nesta pasta. As mesmas regras valem lá. A resposta aparece numa aba estreita: seja ainda mais curto.
 
 ## 11. Regras do meu negócio
 

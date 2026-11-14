@@ -9,6 +9,7 @@ const md = require('./lib/md');
 const status = require('./lib/status');
 const cronograma = require('./lib/cronograma');
 const registros = require('./lib/registros');
+const testes = require('./lib/testes');
 const git = require('./lib/git');
 const porta = require('./lib/porta');
 
@@ -35,6 +36,18 @@ function linhaDosRegistros() {
   return novos ? `Feedbacks novos sem olhar: ${novos} (memoria/feedbacks.md).` : '';
 }
 
+function linhaDosPrazos() {
+  const hoje = md.hojeISO();
+  const vencidos = testes.prazos().filter((p) => p.data <= hoje);
+  if (!vencidos.length) return '';
+  const t = vencidos.filter((p) => p.tipo === 'teste').length;
+  const d = vencidos.filter((p) => p.tipo === 'decisao').length;
+  const partes = [];
+  if (t) partes.push(`${t} ${t === 1 ? 'teste' : 'testes'} pra julgar (marketing/testes.md)`);
+  if (d) partes.push(`${d} ${d === 1 ? 'decisão' : 'decisões'} pra rever (memoria/decisoes.md)`);
+  return `Prazos vencidos: ${partes.join(', ')}. Lembre o dono.`;
+}
+
 function linhaDoGit() {
   const e = git.estado();
   if (git.ligado(e)) {
@@ -47,12 +60,17 @@ function linhaDoGit() {
 }
 
 async function principal() {
+  if (process.env.PAINEL_ANOTADOR === '1') return; // a sessão escondida do anotador não precisa do resumo
   const linhas = ['[Painel do negócio] Resumo pra IA (regras em AGENTS.md):'];
   try { linhas.push(linhaDoStatus(status.calcular())); } catch (e) { linhas.push(`Configuração: não consegui ler (${e.message}).`); }
   try { linhas.push(linhaDoDia()); } catch { /* sem cronograma */ }
   try { const r = linhaDosRegistros(); if (r) linhas.push(r); } catch { /* sem feedbacks */ }
+  try { const r = linhaDosPrazos(); if (r) linhas.push(r); } catch { /* sem testes */ }
   try { linhas.push(linhaDoGit()); } catch { /* sem git */ }
-  if (!process.argv.includes('--sem-painel')) {
+  if (process.env.PAINEL_CHAT === '1') {
+    // A conversa vem do chat que fica dentro do painel: o dono já está com ele aberto
+    linhas.push('Painel: o dono está conversando pelo chat que fica dentro do painel. Não mande o link do painel.');
+  } else if (!process.argv.includes('--sem-painel')) {
     try {
       const p = await porta.ligarEmSegundoPlano();
       linhas.push(p ? `Painel: ${porta.url(p)} (ponha esse link no fim da sua primeira resposta).` : 'Painel: não ligou (rode npm start pra ver o erro).');

@@ -1,6 +1,8 @@
 // O painel: menu do lado, rotas (#/tela), tema, cor da marca e atualização ao vivo.
 // Cada tela fica em telas/<nome>.js e exporta montar(alvo, ctx).
 import { h, ic, api, aviso, falhou } from './ui.js';
+import { abrirBusca } from './busca.js';
+import { iniciarChat, eventoDoChat, botaoDoChat, alternarChat } from './chat.js';
 
 const TELAS = {
   comece: () => import('./telas/comece.js'),
@@ -10,6 +12,9 @@ const TELAS = {
   arquivo: () => import('./telas/arquivo.js'),
   feedbacks: () => import('./telas/feedbacks.js'),
   ideias: () => import('./telas/ideias.js'),
+  testes: () => import('./telas/testes.js'),
+  numeros: () => import('./telas/numeros.js'),
+  saidas: () => import('./telas/saidas.js'),
   ferramentas: () => import('./telas/ferramentas.js'),
   ajuda: () => import('./telas/ajuda.js'),
   ajustes: () => import('./telas/ajustes.js'),
@@ -104,6 +109,7 @@ function itensDoMenu(inicio) {
     { id: 'dashboard', nome: 'Dashboard', icone: 'calendario', href: '#/dashboard', ordem: 20 },
     { id: 'kanban', nome: 'Kanban', icone: 'colunas', href: '#/kanban', ordem: 30 },
     { id: 'ferramentas', nome: 'Ferramentas', icone: 'ferramenta', href: '#/ferramentas', ordem: 60 },
+    { id: 'saidas', nome: 'Saídas', icone: 'bandeja', href: '#/saidas', ordem: 80 },
     { id: 'feedbacks', nome: 'Feedbacks', icone: 'conversa', href: '#/feedbacks', ordem: 90 },
     { id: 'ideias', nome: 'Ideias', icone: 'lampada', href: '#/ideias', ordem: 100 },
     ...inicio.areas.map((a) => ({ id: `area:${a.id}`, nome: a.nome, icone: a.icone, href: `#/area/${encodeURIComponent(a.id)}`, ordem: a.ordem })),
@@ -117,11 +123,16 @@ function itensDoMenu(inicio) {
   };
 }
 
+// Telas que moram dentro de uma área (o menu marca a área)
+const TELA_DA_AREA = { testes: 'marketing', numeros: 'marketing' };
+
 function idAtivo(r) {
   if (r.nome === 'area') return `area:${r.resto[0]}`;
+  if (TELA_DA_AREA[r.nome]) return `area:${TELA_DA_AREA[r.nome]}`;
   if (r.nome === 'arquivo') {
     const c = r.params.get('c') || '';
     const pasta = c.split('/')[0];
+    if (pasta === 'saidas') return 'saidas';
     const area = (estado.inicio?.areas || []).find((a) => a.id === pasta);
     if (area) return `area:${area.id}`;
     if (pasta === 'memoria') return 'area:negocio';
@@ -163,12 +174,30 @@ function salvoNoGitHub(git) {
   return h('a', { class: classe, href: '#/ajustes', title: 'GitHub' }, h('span', { class: 'ponto' }), h('span', null, git.resumo || 'GitHub'));
 }
 
+// ---------- busca (Cmd+K) ----------
+
+const MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+
+export function procurar() {
+  if (!estado.inicio) return;
+  const { principais, rodape } = itensDoMenu(estado.inicio);
+  const telas = [...principais, ...rodape, { nome: 'Testes', icone: 'alvo', href: '#/testes' }, { nome: 'Números', icone: 'grafico', href: '#/numeros' }];
+  abrirBusca({ navegar, telas });
+}
+
+function botaoProcurar() {
+  return h('button', { type: 'button', class: 'botao-procurar', onclick: procurar, 'aria-keyshortcuts': MAC ? 'Meta+K' : 'Control+K' },
+    ic('busca'), h('span', null, 'Procurar'), h('kbd', null, MAC ? '⌘K' : 'Ctrl K'));
+}
+
 function desenharLateral() {
   const inicio = estado.inicio;
   const { principais, rodape } = itensDoMenu(inicio);
   const lateral = document.querySelector('.lateral');
   const vidro = h('div', { class: 'lateral-vidro vidro' },
     marcaDoMenu(inicio),
+    botaoProcurar(),
+    botaoDoChat(),
     h('nav', { class: 'menu', 'aria-label': 'Menu' },
       principais.map(linkDoMenu),
       h('div', { class: 'menu-separa', role: 'separator' }),
@@ -177,7 +206,10 @@ function desenharLateral() {
   lateral.replaceChildren(vidro);
   document.querySelector('.topo-movel').replaceChildren(
     marcaDoMenu(inicio),
-    h('button', { type: 'button', class: 'icone-botao', 'aria-label': 'Abrir o menu', onclick: () => lateral.classList.add('aberta') }, ic('menu')));
+    h('div', { class: 'chips' },
+      h('button', { type: 'button', class: 'icone-botao', 'aria-label': 'Procurar', onclick: procurar }, ic('busca')),
+      h('button', { type: 'button', class: 'icone-botao abrir-chat', 'aria-label': 'Conversar com a IA', onclick: alternarChat }, ic('ia'), h('i', { class: 'bolinha' })),
+      h('button', { type: 'button', class: 'icone-botao', 'aria-label': 'Abrir o menu', onclick: () => lateral.classList.add('aberta') }, ic('menu'))));
   marcarMenu();
 }
 
@@ -265,6 +297,7 @@ function ouvirMudancas() {
     relogio = setTimeout(() => recarregar({ silencioso: true }), 200);
   });
   // O "npm run baixar" (pelo terminal) traz as abas pra tela Ferramentas: é lá que saem as fotos e a transcrição
+  fonte.addEventListener('chat', (e) => { try { eventoDoChat(JSON.parse(e.data)); } catch { /* evento estranho */ } });
   fonte.addEventListener('ferramentas', () => { if (!location.hash.startsWith('#/ferramentas')) navegar('#/ferramentas'); });
 }
 
@@ -282,13 +315,17 @@ async function iniciar() {
   lateral.addEventListener('click', (e) => {
     if (e.target === lateral || e.target.closest('a')) lateral.classList.remove('aberta');
   });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') lateral.classList.remove('aberta'); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') lateral.classList.remove('aberta');
+    if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); procurar(); }
+  });
   try {
     await atualizarInicio();
   } catch (e) {
     document.getElementById('tela').replaceChildren(telaDeErro(e));
     return;
   }
+  try { await iniciarChat(); } catch { /* o painel funciona sem o chat */ }
   window.addEventListener('hashchange', () => mostrar());
   await mostrar();
   ouvirMudancas();

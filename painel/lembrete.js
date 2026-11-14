@@ -7,6 +7,7 @@ const fs = require('fs');
 const path = require('path');
 
 const arquivo = path.join(__dirname, '..', '.claude', 'lembrete.txt');
+if (process.env.PAINEL_ANOTADOR === '1') process.exit(0); // o anotador já recebe as instruções dele
 try {
   process.stdout.write(fs.readFileSync(arquivo, 'utf8'));
 } catch {

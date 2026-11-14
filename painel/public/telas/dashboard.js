@@ -1,8 +1,5 @@
 // Dashboard: o cronograma (lista e calendário), os números do dia e o resumo do resto.
-import {
-  h, ic, api, aviso, falhou, cabeca, janela, confirmar, copiar,
-  hoje, somarDias, dataDe, isoDe, dataCurta, diaDaSemana, nomeDoMes, NOMES_SEMANA, quandoFoi,
-} from '../ui.js';
+import { h, ic, api, aviso, falhou, cabeca, janela, confirmar, copiar, hoje, somarDias, dataDe, isoDe, dataCurta, diaDaSemana, nomeDoMes, NOMES_SEMANA, quandoFoi, pedirIA } from '../ui.js';
 
 const vista = {
   get modo() { try { return localStorage.getItem('keylab-cronograma') || 'lista'; } catch { return 'lista'; } },
@@ -77,8 +74,32 @@ async function editarTarefa(t, ctx) {
   }
 }
 
+async function marcarRevista(t, ctx) {
+  try {
+    await api('/api/decisoes/revista', { titulo: t.titulo, linha: t.linha });
+    aviso('Anotado: decisão revista.');
+  } catch (e) { falhou(e); }
+  await ctx.recarregar({ silencioso: true });
+}
+
+// Prazo de um teste (julgar) ou de uma decisão (rever): vem de marketing/testes.md e memoria/decisoes.md
+function linhaDePrazo(t, ctx, { mostrarData = true } = {}) {
+  const hj = hoje();
+  const ehTeste = t.tipo === 'teste';
+  return h('li', { class: 'linha' },
+    h('span', { class: 'caixa prazo', title: ehTeste ? 'Teste pra julgar' : 'Decisão pra rever' }, ic(ehTeste ? 'alvo' : 'relogio')),
+    h('div', { class: 'linha-texto' },
+      h('a', { href: t.href, style: 'text-decoration:none' }, t.texto),
+      h('div', { class: 'meta' }, mostrarData ? chipDeData(t.data, hj) : null, h('span', { class: 'chip' }, ehTeste ? 'Teste' : 'Decisão'))),
+    h('div', { class: 'acoes-linha', style: 'opacity:1' },
+      ehTeste
+        ? h('a', { class: 'botao leve pequeno', href: '#/testes' }, 'Julgar')
+        : h('button', { type: 'button', class: 'botao leve pequeno', title: 'Marcar como revista', onclick: () => marcarRevista(t, ctx) }, ic('check'), 'Já revi')));
+}
+
 function linhaDeTarefa(t, ctx, { mostrarData = true } = {}) {
   const hj = hoje();
+  if (t.doPrazo) return linhaDePrazo(t, ctx, { mostrarData });
   if (t.doQuadro) {
     return h('li', { class: 'linha' },
       h('span', { class: 'caixa', style: 'border-style:dashed;cursor:default', title: 'Cartão do kanban' }),
@@ -202,7 +223,7 @@ function calendario(itens, ctx) {
           onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirDia(iso, itens, ctx); } },
         },
         h('span', { class: 'n' }, String(Number(iso.slice(8)))),
-        doDia.slice(0, 3).map((t) => h('span', { class: `cal-item${t.data < hj ? ' atrasada' : ''}${t.doQuadro ? ' do-quadro' : ''}`, title: t.texto }, t.texto)),
+        doDia.slice(0, 3).map((t) => h('span', { class: `cal-item${t.data < hj ? ' atrasada' : ''}${t.doQuadro ? ' do-quadro' : ''}${t.doPrazo ? ' do-prazo' : ''}`, title: t.texto }, t.texto)),
         doDia.length > 3 ? h('span', { class: 'cal-mais' }, `mais ${doDia.length - 3}`) : null);
       })));
 }
@@ -231,6 +252,42 @@ function painelDecisoes(decisoes, ctx) {
     decisoes.length
       ? h('ul', { class: 'lista' }, decisoes.map((t) => linhaDeTarefa(t, ctx)))
       : h('p', { class: 'fraco pequeno', style: 'margin:0' }, 'Nada pra decidir agora. Escolha "Decisão" ao anotar, ou conte pra IA.'));
+}
+
+// "Pra arrumar": o que está velho ou esquecido (só aparece quando tem algo)
+function painelArrumar(avisos) {
+  if (!avisos || !avisos.length) return null;
+  return h('section', { class: 'painel vidro arrumar' },
+    h('div', { class: 'painel-cabeca' },
+      h('h2', null, 'Pra arrumar'),
+      h('button', { type: 'button', class: 'botao leve pequeno', title: 'Pedir pra IA', onclick: () => pedirIA('Revisa tudo: o que está velho, atrasado ou esquecido no cérebro do negócio? Siga receitas/revisar-tudo.md.') }, ic('ia'), 'Arrumar com a IA')),
+    h('ul', { class: 'lista' }, avisos.map((a) => h('li', { class: 'linha' },
+      h('span', { class: 'ico-aviso' }, ic(a.icone)),
+      h('div', { class: 'linha-texto' },
+        a.href ? h('a', { href: a.href, style: 'text-decoration:none;font-weight:600' }, a.texto) : h('div', { style: 'font-weight:600' }, a.texto),
+        a.detalhe ? h('div', { class: 'fraco pequeno' }, a.detalhe) : null),
+      h('button', { type: 'button', class: 'icone-botao', title: 'Pedir pra IA', 'aria-label': `Pedir pra IA: ${a.texto}`, onclick: () => pedirIA(a.pedido) }, ic('ia'))))));
+}
+
+// O que o anotador (a IA escondida que confere a conversa) guardou nos últimos dias
+function painelAnotados(lista) {
+  if (!lista || !lista.length) return null;
+  const itens = lista.flatMap((e) => (e.itens || []).map((t) => ({ texto: t, quando: e.quando, arquivos: e.arquivos || [] }))).slice(0, 6);
+  const arquivoDe = (t, arquivos) => {
+    const m = /([\w-]+(?:\/[\w.-]+)+\.md)/.exec(t);
+    return m ? m[1] : (arquivos.length === 1 ? arquivos[0] : null);
+  };
+  return h('section', { class: 'painel vidro' },
+    h('div', { class: 'painel-cabeca' }, h('h2', null, 'A IA anotou sozinha'), h('a', { class: 'botao leve pequeno', href: '#/ajustes' }, 'Ajustes')),
+    h('ul', { class: 'lista' }, itens.map((i) => {
+      const arq = arquivoDe(i.texto, i.arquivos);
+      const texto = i.texto.replace(/\s*\([^()]*\.md[^()]*\)\s*$/, '');
+      return h('li', { class: 'linha' },
+        h('span', { class: 'ico-aviso' }, ic('check')),
+        h('div', { class: 'linha-texto' },
+          arq ? h('a', { href: `#/arquivo?c=${encodeURIComponent(arq)}`, style: 'text-decoration:none' }, texto) : h('div', null, texto),
+          h('div', { class: 'fraco pequeno' }, [quandoFoi(i.quando), arq].filter(Boolean).join(' · '))));
+    })));
 }
 
 function painelGitHub(git, ctx) {
@@ -276,7 +333,8 @@ export async function montar(alvo, ctx) {
   const d = await api('/api/dashboard');
   const hj = hoje();
   const cartoes = d.cartoes.map((c) => ({ ...c, doQuadro: true, id: `quadro:${c.arquivo}:${c.texto}` }));
-  const itens = [...d.cronograma.tarefas, ...cartoes];
+  const prazos = (d.prazos || []).map((p) => ({ ...p, doPrazo: true, id: `prazo:${p.tipo}:${p.titulo}` }));
+  const itens = [...d.cronograma.tarefas, ...cartoes, ...prazos];
   const atrasadas = itens.filter((t) => t.data && t.data < hj).length;
   const deHoje = itens.filter((t) => t.data === hj).length;
   const semanaN = itens.filter((t) => t.data && t.data > hj && t.data <= somarDias(hj, 7)).length;
@@ -308,6 +366,8 @@ export async function montar(alvo, ctx) {
   alvo.append(h('div', { class: 'grade-2' },
     cronograma,
     h('div', { class: 'pilha' },
+      painelArrumar(d.avisos),
+      painelAnotados(d.anotados),
       painelDecisoes(d.cronograma.decisoes, ctx),
       painelGitHub(d.git, ctx),
       painelFeedbacks(d),
@@ -315,7 +375,7 @@ export async function montar(alvo, ctx) {
       h('section', { class: 'painel vidro' },
         h('h2', null, 'Pergunte pra IA'),
         h('p', { class: 'suave pequeno', style: 'margin:6px 0 12px' }, 'Não sabe por onde começar o dia?'),
-        h('button', { type: 'button', class: 'pedido', onclick: () => copiar('O que eu faço hoje? Leia o cronograma, o kanban e a estratégia e me diga as 3 coisas mais importantes.') },
+        h('button', { type: 'button', class: 'pedido', onclick: () => pedirIA('O que eu faço hoje? Leia o cronograma, o kanban e a estratégia e me diga as 3 coisas mais importantes.') },
           ic('ia'), h('span', null, 'O que eu faço hoje?'), h('span', { class: 'copiar-txt' }, 'Copiar'))))));
 
   return {
