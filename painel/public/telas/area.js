@@ -48,13 +48,13 @@ function semTitulosVazios(texto) {
 }
 
 function iconeDoArquivo(f) {
-  if (f.tipo === 'configurar') return miniAnel(f.pct);
+  if (f.tipo === 'configurar' || f.tipo === 'formulario') return miniAnel(f.pct);
   const nome = { kanban: 'colunas', dados: 'tabela', molde: 'copiar', texto: 'texto' }[f.tipo] || 'texto';
   return h('span', { class: 'ico-arq' }, ic(nome));
 }
 
 function descricaoDoArquivo(f) {
-  if (f.tipo === 'configurar') {
+  if (f.tipo === 'configurar' || f.tipo === 'formulario') {
     if (f.pct >= 100) return 'Pronto';
     const faltam = f.total - f.feitos;
     return `${faltam} ${faltam === 1 ? 'resposta falta' : 'respostas faltam'}`;
@@ -63,6 +63,11 @@ function descricaoDoArquivo(f) {
   if (f.tipo === 'molde') return 'Molde (a IA copia pra criar um novo)';
   return f.descricao || (f.atualizado ? `Mudou ${quandoFoi(f.atualizado)}` : '');
 }
+
+// Áreas que têm uma tela só delas (no lugar da página padrão)
+const TELAS_PROPRIAS = {
+  mentalidade: () => import('./mentalidade.js'),
+};
 
 // Telas especiais que uma área pode mostrar no topo ("- **Telas (opcional):** testes, numeros" no LEIA-ME)
 const TELAS_EXTRAS = {
@@ -103,6 +108,11 @@ function destaque(t) {
 export async function montar(alvo, ctx) {
   const id = ctx.rota.resto[0];
   const a = await api(`/api/area?id=${encodeURIComponent(id || '')}`);
+  // Área com tela própria ("Tela própria (opcional)" no LEIA-ME)
+  if (TELAS_PROPRIAS[a.telaPropria]) {
+    const mod = await TELAS_PROPRIAS[a.telaPropria]();
+    return mod.montar(alvo, ctx, a);
+  }
 
   alvo.append(cabeca({
     titulo: a.titulo || a.nome,

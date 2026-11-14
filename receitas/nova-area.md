@@ -19,13 +19,14 @@
 1. Crie a pasta na raiz, em minúsculas, sem acento e com hífen (ex.: `vendas/`).
 2. Copie `modelos/area/LEIA-ME.md` pra dentro dela e preencha: título, descrição, tabela de arquivos, regras, pedidos prontos e a seção "Menu do painel":
    - **Nome no menu:** curto, 1 ou 2 palavras.
-   - **Ícone:** um destes: maleta, megafone, pasta, codigo, globo, carrinho, pessoas, video, livro, grafico, dinheiro, estrela, raio, coracao, loja, caixa, alvo, predio, foguete, lampada, chave.
+   - **Ícone:** um destes: maleta, megafone, pasta, codigo, globo, carrinho, pessoas, video, livro, grafico, dinheiro, estrela, raio, coracao, loja, caixa, alvo, predio, foguete, lampada, chave, semente.
    - **Ordem:** um número de 41 a 89 (o menu vai do menor pro maior).
 3. Pra cada coisa a guardar, copie o molde certo e tire o `_` do nome:
 
    | É... | Molde | Vira |
    |---|---|---|
    | informação que se preenche uma vez | `modelos/area/_molde-configurar.md` | perguntas que contam no "Comece aqui" |
+   | perguntas pessoais, opcionais | o mesmo molde, com `<!-- formulario -->` no lugar de `<!-- configurar: N -->` | formulário no painel, sem contar no "Comece aqui" |
    | trabalho que anda por etapas | `modelos/area/_molde-quadro.md` | um quadro no Kanban |
    | coisas que se acumulam | `modelos/area/_molde-registro.md` | blocos `###`, o mais novo em cima |
    | um jeito de fazer (processo) | `modelos/receita.md` | uma receita em `<area>/metodo/` |

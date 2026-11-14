@@ -23,10 +23,10 @@ IA que só conversa (ChatGPT ou Claude no site) também serve. Veja "Uso uma IA 
 
 ### Por onde eu começo?
 
-1. Abra esta pasta na sua IA.
-2. Escreva: configurar.
+1. Abra esta pasta na sua IA e diga oi.
+2. A IA abre o painel no navegador e começa a configurar com você.
 3. Responda as perguntas (dá pra pular).
-4. Abra o painel e veja o "Comece aqui".
+4. Quer continuar outro dia? Escreva: configurar.
 
 Peça pra IA: `configurar`
 
@@ -132,7 +132,7 @@ Só pra anotar o que você contou (feedback, ideia, decisão, tarefa), e ela sem
 
 ### Como abro o painel?
 
-Dois cliques em `ABRIR-PAINEL.command` (Mac) ou `ABRIR-PAINEL.bat` (Windows). Ou peça pra IA. O endereço é http://localhost:4747.
+Ele abre sozinho quando você começa uma conversa com a IA (se ainda não estiver aberto). Pra abrir na mão: dois cliques em `ABRIR-PAINEL.command` (Mac) ou `ABRIR-PAINEL.bat` (Windows), ou peça pra IA. O endereço é http://localhost:4747 (ou o próximo número livre). Não quer que ele abra sozinho? Ajustes → Sobre o painel → "Abrir o painel sozinho".
 
 Peça pra IA: `abre o painel`
 
@@ -142,9 +142,17 @@ Quase sempre falta o Node. Baixe em nodejs.org (a versão LTS), instale e tente 
 
 Peça pra IA: `O painel não abre. Me ajude.`
 
+### Dá pra deixar o menu menor?
+
+Dá. Clique no quadradinho que fica na borda de cima do menu, à direita: ficam só os ícones (passe o mouse em cima pra ver o nome). Pra abrir de novo, clique nele outra vez. O painel lembra da sua escolha.
+
+### Onde abro o chat com a IA?
+
+No botão redondo do canto de baixo, à direita, em qualquer tela. Ou em **Conversar com a IA**, no menu.
+
 ### Como mudo pra tema claro ou escuro?
 
-No pé do menu tem 3 botões: o sol (claro), o círculo meio a meio (igual ao computador) e a lua (escuro). Também em Ajustes.
+Em Ajustes → Aparência → Tema: claro, escuro ou automático (igual ao computador).
 
 ### Como coloco o meu logo?
 
@@ -266,6 +274,60 @@ Senhas, chaves e o arquivo `.env` ficam de fora (o `.gitignore` tira). Vídeos e
 ### Como instalo o Git?
 
 No Mac: abra o Terminal e digite `git --version`. Se ele pedir, clique em Instalar. No Windows: baixe em git-scm.com e instale clicando em Avançar. O GitHub Desktop já traz o que precisa.
+
+## Mentalidade
+
+### O que é o menu Mentalidade?
+
+É o lugar do seu jeito de pensar. Com o mesmo jeito de pensar, o resultado não muda: por isso a mudança começa por dentro. A tela é uma jornada, nesta ordem:
+
+1. **Entenda:** por que começar por dentro (pensamento → sentimento → ação → resultado) e que você pode mudar.
+2. **O jeito de pensar de quem prospera:** 7 ideias curtas.
+3. **Troca de crenças:** as ideias que te seguram, trocadas pelas que libertam.
+4. **O seu objetivo de vida:** a vida dos seus sonhos, sem limites, por área (saúde, família, dinheiro, trabalho, casa, viagens, quem você se torna, o dia perfeito e o porquê). Travou? Toque em **Me ajude a sonhar**: a IA pergunta área por área e dá ideias.
+5. **O quadro dos sonhos:** duas opções. **Copiar prompt para uma IA de imagem** libera quando você descreve todas as áreas da vida: o painel monta o prompt com tudo o que você escreveu, no formato certo (deitado, 16:9). Você cola numa IA de imagem (ChatGPT, Gemini...) e gera. Depois, em **Vincular meu quadro dos sonhos**, coloca a imagem. Ela aparece no seu sonho e no "Ver e sentir".
+6. **Todo dia:** a frase do dia (são 52, e você pode escrever as suas) e a prática de 5 minutos.
+7. **Diário:** escreva o quanto quiser, com a data de hoje ou a que escolher. Dá pra editar e apagar.
+
+No fim, cada arquivo explica pra que serve, por que usar e como usar. O seu sonho também aparece de leve no painel todo: no menu, no Kanban e no "Comece aqui".
+
+Peça pra IA: `Me ajude a sonhar: me pergunte área por área da minha vida.`
+
+### Como a IA ajuda na mentalidade?
+
+Ela anota o seu sonho, as suas gratidões e as suas boas ações quando você conta. Quando você fala algo como "isso não é pra mim", ela mostra a crença com carinho e te ajuda a trocar. E, no "o que eu faço hoje", ela lembra do passo rumo ao seu sonho e pergunta quem você vai ajudar.
+
+Peça pra IA: `Faz comigo a prática de 5 minutos agora.`
+
+### Como troco uma crença que me trava?
+
+Em Mentalidade → Troca de crenças → **Ver todas**. Lá você:
+
+- escreve a crença que te trava e a nova, e guarda;
+- não sabe a nova? Toque em **Pedir pra IA sugerir a nova**: ela mostra de onde a crença costuma vir e sugere crenças de prosperidade, abundância e sucesso;
+- não sabe quais são as suas? Toque em **Me ajude a descobrir**: a IA faz perguntas curtas, uma de cada vez;
+- reconheceu uma das mais comuns? Toque em **Também tenho essa**.
+
+Peça pra IA: `Tenho uma crença que me trava: `
+
+### Como coloco as minhas frases do dia?
+
+Em Mentalidade → Todo dia, no cartão da frase:
+
+- **Outra frase:** troca por outra, se aquela não tocou hoje;
+- **Escrever a minha:** você escreve uma frase sua (curta, no presente, "Eu sou...", "Eu tenho..."). As suas aparecem dia sim, dia não;
+- **Ver todas:** as 52 frases, por tema, e as suas. Lá tem o botão **Criar frases pra mim**: a IA lê o seu sonho e as suas crenças e cria frases feitas pra você.
+
+### Como uso o diário?
+
+Em Mentalidade → Diário (ou em **Ver o diário inteiro**):
+
+- escreva o quanto quiser. A data de hoje já vem marcada; quer outra? É só trocar;
+- os botões **Agradeço por**, **Hoje eu ajudei** e **Vitória do dia** começam uma linha pra você;
+- cada nota tem o lápis (editar) e a lixeira (apagar). Dá pra mudar a data na hora de editar;
+- as notas ficam organizadas por data, a mais nova em cima. Se a página fechar no meio, o que você estava escrevendo volta.
+
+Também dá pra contar pra IA (`Hoje eu agradeço por: `): ela anota no diário.
 
 ## Marketing
 

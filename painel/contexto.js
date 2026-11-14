@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 // Resumo curto pra IA no começo da conversa: o que falta configurar, o que tem pra hoje,
-// o GitHub e o link do painel (que ele liga se estiver desligado).
-//   node painel/contexto.js               resumo + liga o painel
+// o GitHub e o link do painel (que ele liga se estiver desligado e abre no navegador se não tiver aba aberta).
+// Na primeira vez (nada configurado), pede pra IA guiar o dono na configuração, sem esperar ele pedir.
+//   node painel/contexto.js               resumo + liga o painel (e abre no navegador, se não estiver aberto)
 //   node painel/contexto.js --sem-painel  só o resumo
+//   node painel/contexto.js --sem-abrir   liga o painel, mas não abre o navegador
+// No Claude Code, roda sozinho (gancho SessionStart). Retomar ou resumir a conversa não reabre o navegador.
 'use strict';
 
 const md = require('./lib/md');
@@ -12,6 +15,54 @@ const registros = require('./lib/registros');
 const testes = require('./lib/testes');
 const git = require('./lib/git');
 const porta = require('./lib/porta');
+const pref = require('./lib/preferencias');
+
+// O gancho do Claude Code manda um JSON pela entrada (com "source": startup, resume, clear ou compact)
+function lerEntrada() {
+  return new Promise((resolve) => {
+    if (process.stdin.isTTY) { resolve({}); return; }
+    let txt = '';
+    let feito = false;
+    const fim = () => {
+      if (feito) return;
+      feito = true;
+      try { process.stdin.destroy(); } catch { /* já fechou */ }
+      try { resolve(JSON.parse(txt || '{}')); } catch { resolve({}); }
+    };
+    setTimeout(fim, 600);
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', (d) => { txt += d; });
+    process.stdin.on('end', fim);
+    process.stdin.on('error', fim);
+  });
+}
+
+// Primeira vez: nenhuma pergunta de configurar respondida ainda
+function ehPrimeiraVez(st) {
+  const arquivos = st.itens.filter((i) => i.tipo === 'arquivo');
+  return arquivos.length > 0 && arquivos.every((i) => !i.feitos);
+}
+
+const PRIMEIRA_VEZ = 'PRIMEIRA VEZ: o dono acabou de abrir esta pasta e ainda não configurou nada. Guie ele agora, sem esperar ele pedir. Na sua primeira resposta, qualquer que seja a mensagem dele: (1) boas-vindas em até 2 linhas (esta pasta é o cérebro do negócio dele, e o painel mostra tudo); (2) mande o link do painel e diga se ele já abriu no navegador (a linha "Painel" abaixo diz); (3) comece a receita receitas/configurar.md já fazendo a primeira pergunta (o tipo de negócio, com as opções numeradas). Se ele pediu outra coisa específica, faça primeiro e depois comece a configuração.';
+
+async function abasAbertas(p) {
+  const r = await porta.ping(p, 1000);
+  return r && typeof r.abas === 'number' ? r.abas : 0;
+}
+
+// Liga o painel e, se nenhuma aba estiver aberta, abre no navegador
+async function painel({ abrir }) {
+  const jaEstava = await porta.portaLigada();
+  const p = jaEstava || await porta.ligarEmSegundoPlano();
+  if (!p) return { porta: null };
+  if (!abrir) return { porta: p, aberto: null };
+  // painel que acabou de ligar: dá tempo pras abas que já estavam abertas se reconectarem
+  if (!jaEstava) await new Promise((r) => setTimeout(r, 2500));
+  if (await abasAbertas(p)) return { porta: p, aberto: 'ja' };
+  if (process.env.PAINEL_SEM_NAVEGADOR === '1') return { porta: p, aberto: 'abriria' }; // pra testar sem abrir janela
+  porta.abrirNavegador(porta.url(p));
+  return { porta: p, aberto: 'agora' };
+}
 
 function linhaDoStatus(st) {
   if (st.pct >= 100) return 'Configuração: 100% (tudo pronto).';
@@ -61,8 +112,15 @@ function linhaDoGit() {
 
 async function principal() {
   if (process.env.PAINEL_ANOTADOR === '1') return; // a sessão escondida do anotador não precisa do resumo
+  const entrada = await lerEntrada();
   const linhas = ['[Painel do negócio] Resumo pra IA (regras em AGENTS.md):'];
-  try { linhas.push(linhaDoStatus(status.calcular())); } catch (e) { linhas.push(`Configuração: não consegui ler (${e.message}).`); }
+  let primeiraVez = false;
+  try {
+    const st = status.calcular();
+    primeiraVez = ehPrimeiraVez(st);
+    if (primeiraVez) linhas.push(PRIMEIRA_VEZ);
+    linhas.push(linhaDoStatus(st));
+  } catch (e) { linhas.push(`Configuração: não consegui ler (${e.message}).`); }
   try { linhas.push(linhaDoDia()); } catch { /* sem cronograma */ }
   try { const r = linhaDosRegistros(); if (r) linhas.push(r); } catch { /* sem feedbacks */ }
   try { const r = linhaDosPrazos(); if (r) linhas.push(r); } catch { /* sem testes */ }
@@ -71,10 +129,19 @@ async function principal() {
     // A conversa vem do chat que fica dentro do painel: o dono já está com ele aberto
     linhas.push('Painel: o dono está conversando pelo chat que fica dentro do painel. Não mande o link do painel.');
   } else if (!process.argv.includes('--sem-painel')) {
+    // Abre no navegador no começo de uma conversa (não ao retomar ou resumir), se o dono não desligou
+    const comeco = !entrada.source || ['startup', 'clear'].includes(entrada.source);
+    const abrir = comeco && !process.argv.includes('--sem-abrir') && !pref.nao(pref.ler('abrir o painel sozinho'));
     try {
-      const p = await porta.ligarEmSegundoPlano();
-      linhas.push(p ? `Painel: ${porta.url(p)} (ponha esse link no fim da sua primeira resposta).` : 'Painel: não ligou (rode npm start pra ver o erro).');
-    } catch { linhas.push('Painel: não ligou.'); }
+      const r = await painel({ abrir });
+      if (!r.porta) linhas.push('Painel: não ligou. Peça pro dono dar dois cliques em ABRIR-PAINEL (receitas/abrir-painel.md).');
+      else {
+        const url = porta.url(r.porta);
+        const como = { agora: 'abri no navegador agora', abriria: 'abriria no navegador agora', ja: 'já está aberto numa aba do navegador' }[r.aberto];
+        const dizer = r.aberto ? ' e diga que o painel está aberto no navegador' : ' (está ligado, mas não abri no navegador: diga pro dono clicar no link)';
+        linhas.push(`Painel: ${url}${como ? ` (${como})` : ''}. Ponha esse link no fim da sua primeira resposta${primeiraVez ? dizer : ''}.`);
+      }
+    } catch { linhas.push('Painel: não ligou. Peça pro dono dar dois cliques em ABRIR-PAINEL.'); }
   }
   console.log(linhas.join('\n'));
 }

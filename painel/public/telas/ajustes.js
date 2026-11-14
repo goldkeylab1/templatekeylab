@@ -193,6 +193,10 @@ function painelSobre(ctx) {
     h('ul', { class: 'lista' },
       linha('Pasta', ctx.inicio.pasta, null),
       linha('Versão', ctx.inicio.versao, null),
+      linha('Abrir o painel sozinho', 'Quando você começa uma conversa com a IA, o painel abre no navegador (se ainda não estiver aberto).', interruptor(ctx.inicio.abrirSozinho, async (v) => {
+        await api('/api/preferencia', { nome: 'Abrir o painel sozinho', valor: v ? 'sim' : 'não', rotulo: 'Abrir o painel sozinho' });
+        await ctx.atualizarInicio();
+      }, 'Abrir o painel sozinho')),
       linha('Desligar', 'Feche a janela do terminal, ou rode: npm run parar', null),
       linha('Mudar o painel', 'Peça pra IA. Ela segue receitas/personalizar-painel.md.', h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => pedirIA('Quero mudar o meu painel: ') }, ic('ia'), temChat() ? 'Pedir pra IA' : 'Copiar pedido'))));
 }

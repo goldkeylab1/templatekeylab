@@ -31,7 +31,7 @@ Tudo em arquivos de texto simples (`.md`). Você abre a pasta na sua IA e conver
 - **segue receitas** prontas pras tarefas que se repetem;
 - **descobre o que funciona** no seu marketing, com os seus números.
 
-E um **painel web** mostra tudo: o que falta configurar, o cronograma, o kanban, os testes, o gráfico dos números, o que a IA escreveu, os feedbacks, as ideias e a ajuda. Tem busca (Cmd+K) e um **chat com a sua IA** do lado.
+E um **painel web** mostra tudo: o que falta configurar, o cronograma, o kanban, os testes, o gráfico dos números, o que a IA escreveu, os feedbacks, as ideias, a sua mentalidade (o seu sonho, as crenças e a prática de todo dia) e a ajuda. Tem busca (Cmd+K) e um **chat com a sua IA** do lado.
 
 Não precisa saber programar. Não precisa instalar nenhuma biblioteca.
 
@@ -50,14 +50,14 @@ Pra quem tem (ou quer ter) um negócio e usa IA no dia a dia:
 
 Dá pra combinar perfis (um canal que vende curso, por exemplo).
 
-## Comece em 6 passos
+## Comece em 4 passos
 
 1. **Pegue a pasta.** No GitHub, clique em **Use this template**, depois em **Create a new repository**, e marque **Private**. (Ou baixe o ZIP.)
 2. **Instale o Node** (versão LTS) em [nodejs.org](https://nodejs.org). É só pro painel.
-3. **Abra a pasta na sua IA** (Claude Code, Codex, Cursor, Gemini CLI, Copilot...).
-4. **Escreva `configurar`.** A IA pergunta o tipo do seu negócio e o resto, uma coisa por vez.
-5. **Abra o painel:** dois cliques em `ABRIR-PAINEL.command` (Mac) ou `ABRIR-PAINEL.bat` (Windows).
-6. **Ligue no GitHub:** escreva `salvar no github`. Assim você nunca perde nada.
+3. **Abra a pasta na sua IA** (Claude Code, Codex, Cursor, Gemini CLI, Copilot...) **e diga oi.** A IA abre o painel no navegador e começa a configurar com você: pergunta o tipo do seu negócio e o resto, uma coisa por vez.
+4. **Ligue no GitHub:** quando ela oferecer (ou escreva `salvar no github`). Assim você nunca perde nada.
+
+O painel não abriu? Dois cliques em `ABRIR-PAINEL.command` (Mac) ou `ABRIR-PAINEL.bat` (Windows).
 
 O passo a passo com mais detalhe está em [COMECE-AQUI.md](COMECE-AQUI.md).
 
@@ -67,8 +67,8 @@ O passo a passo com mais detalhe está em [COMECE-AQUI.md](COMECE-AQUI.md).
 
 | IA | Como funciona |
 |---|---|
-| **Claude Code** | Tudo automático: o resumo no começo da conversa (que também liga o painel), o lembrete de aprender em cada mensagem, o salvar sozinho no GitHub e os comandos (`/configurar`, `/salvar`, `/nova-area`...) |
-| **Codex, Cursor, GitHub Copilot, Windsurf** | Leem o [AGENTS.md](AGENTS.md) sozinhos e seguem as mesmas regras |
+| **Claude Code** | Tudo automático: o resumo no começo da conversa (que liga e abre o painel, e na primeira vez já começa a configuração), o lembrete de aprender em cada mensagem, o anotador, o salvar sozinho no GitHub e os comandos (`/configurar`, `/salvar`, `/nova-area`...) |
+| **Codex, Cursor, GitHub Copilot, Windsurf** | Leem o [AGENTS.md](AGENTS.md) sozinhos (o Cursor e o Copilot também têm um arquivo próprio apontando pra ele) e seguem as mesmas regras: no começo da conversa rodam o resumo, que abre o painel |
 | **Gemini CLI** | Lê o `GEMINI.md`, que aponta pro AGENTS.md |
 | **ChatGPT ou Claude no site** (IA que só conversa) | No painel, clique em **Copiar o cérebro** e cole no começo da conversa. O resto você anota pelo painel |
 

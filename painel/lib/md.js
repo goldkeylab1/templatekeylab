@@ -111,6 +111,7 @@ function descricaoDoArquivo(linhas) {
 // ---------- marcadores ----------
 // <!-- configurar: 1 --> arquivo de perguntas que conta no "Comece aqui"
 // <!-- kanban -->        arquivo que vira um quadro no menu Kanban
+// <!-- formulario -->    perguntas que viram formulário no painel, mas não contam no "Comece aqui"
 
 // O marcador precisa estar sozinho na linha (citado no meio de um texto não conta)
 function marcador(texto, nome) {

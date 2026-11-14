@@ -72,6 +72,21 @@ export async function montar(alvo, ctx) {
           : 'Cada parte pronta deixa a IA mais certeira com o seu negócio.'),
         st.proximo ? proximoPasso(st.proximo) : null))));
 
+  // Antes de tudo: o sonho (Mentalidade). Um convite, nunca obrigação: não conta na porcentagem.
+  const lembrete = ctx.inicio.lembrete;
+  if (lembrete) {
+    const sonho = lembrete.sonho;
+    alvo.append(h('section', { class: 'painel convite-sonho' },
+      h('span', { class: 'convite-sonho-ico' }, ic('semente')),
+      h('div', { class: 'convite-sonho-corpo' },
+        h('div', { class: 'sonho-rotulo' }, 'Antes de tudo'),
+        h('h2', null, sonho ? 'Você já sabe pra onde vai.' : 'Pra onde você quer ir?'),
+        h('p', null, sonho
+          ? `Rumo a: ${sonho}`
+          : 'Todo negócio de sucesso começa com uma pessoa que sabe o que quer da vida. Escrever o seu sonho leva poucos minutos e dá direção pra tudo o que vem depois. É opcional, mas faz muita diferença.')),
+      h('a', { class: 'botao principal', href: '#/area/mentalidade' }, ic('montanha'), sonho ? 'Ver a minha Mentalidade' : 'Escrever o meu sonho')));
+  }
+
   const passos = h('ol', { class: 'passos' },
     passo({
       feito: st.pct > 0,

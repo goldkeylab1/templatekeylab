@@ -18,6 +18,7 @@ const MOLDE = `# Preferências
 - **Anotar sozinho:** sim
 - **Modelo do anotador:** haiku
 - **Usar as cores da marca no painel:** sim
+- **Abrir o painel sozinho:** sim
 - **Nome no painel (opcional):**
 `;
 

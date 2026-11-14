@@ -6,6 +6,7 @@ import { semCabecalho } from './area.js';
 function voltaDe(f) {
   if (f.caminho.startsWith('saidas/')) return { href: '#/saidas', texto: 'Saídas' };
   if (f.caminho === 'marketing/testes.md') return { href: '#/testes', texto: 'Testes' };
+  if (f.caminho === 'mentalidade/crencas.md') return { href: '#/crencas', texto: 'Troca de crenças' };
   if (/^marketing\/numeros\/placar/.test(f.caminho)) return { href: '#/numeros', texto: 'Números' };
   if (f.area) return { href: `#/area/${encodeURIComponent(f.area.id)}`, texto: f.area.nome };
   if (f.caminho.startsWith('memoria/')) return { href: '#/area/negocio', texto: 'Meu negócio' };
@@ -196,7 +197,7 @@ export async function montar(alvo, ctx) {
   } else if (!ehMd) {
     alvo.append(h('section', { class: 'painel vidro' }, h('pre', { style: 'white-space:pre-wrap;margin:0;font-family:var(--fonte-mono);font-size:13px' }, f.texto)), rodape);
   } else {
-    const temCampos = f.tipo === 'configurar' && f.campos.length;
+    const temCampos = (f.tipo === 'configurar' || f.tipo === 'formulario') && f.campos.length;
     const corpo = temCampos ? formulario(f, ctx, estado) : h('div', { class: 'doc', html: markdown(semCabecalho(f.texto), { base: f.caminho.split('/').slice(0, -1).join('/') }) });
     if (!temCampos) ligarCaixas(corpo, semCabecalho(f.texto), f.caminho, () => ctx.recarregar({ silencioso: true }));
     const caixa = h('section', { class: 'painel vidro' }, corpo);

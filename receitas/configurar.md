@@ -11,6 +11,7 @@
 
 1. Rode `node painel/contexto.js --sem-painel` (se puder rodar comandos) pra ver o que falta.
 2. Explique em 2 linhas: "Vou te fazer perguntas curtas, uma de cada vez. Não sabe? É só dizer 'pula'. Eu anoto tudo nos arquivos."
+3. Numa frase, lembre o valor do sonho, sem obrigar e sem atrasar a configuração: "Dica: todo negócio de sucesso começa com alguém que sabe o que quer da vida. Quando quiser, escreva o seu sonho no menu Mentalidade." Se o dono quiser fazer isso antes, siga o LEIA-ME de `mentalidade/` ("Me ajude a sonhar") e depois volte pra cá.
 
 ## Passo 1: o tipo de negócio
 

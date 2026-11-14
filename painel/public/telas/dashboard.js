@@ -1,5 +1,7 @@
 // Dashboard: o cronograma (lista e calendário), os números do dia e o resumo do resto.
-import { h, ic, api, aviso, falhou, cabeca, janela, confirmar, copiar, hoje, somarDias, dataDe, isoDe, dataCurta, diaDaSemana, nomeDoMes, NOMES_SEMANA, quandoFoi, pedirIA } from '../ui.js';
+import {
+  h, ic, api, aviso, falhou, cabeca, janela, confirmar, copiar, hoje, somarDias, dataDe, isoDe, dataCurta, diaDaSemana, nomeDoMes, NOMES_SEMANA, quandoFoi, pedirIA, temChat,
+} from '../ui.js';
 
 const vista = {
   get modo() { try { return localStorage.getItem('keylab-cronograma') || 'lista'; } catch { return 'lista'; } },
@@ -346,6 +348,12 @@ export async function montar(alvo, ctx) {
     acoes: d.status.pct < 100 ? [h('a', { class: 'botao', href: '#/comece' }, ic('foguete'), `Configuração ${d.status.pct}%`)] : [],
   }));
 
+  // A frase do dia (mentalidade/frases.md)
+  if (d.frase) {
+    alvo.append(h('a', { class: 'frase-do-dia', href: '#/area/mentalidade', title: 'Mentalidade' },
+      ic('semente'), h('span', null, d.frase.texto)));
+  }
+
   alvo.append(h('div', { class: 'numeros' },
     h('div', { class: `numero vidro${atrasadas ? ' alerta' : ''}` }, h('div', { class: 'valor' }, String(atrasadas)), h('div', { class: 'nome' }, 'Atrasadas')),
     h('div', { class: 'numero vidro' }, h('div', { class: 'valor' }, String(deHoje)), h('div', { class: 'nome' }, 'Pra hoje')),
@@ -376,7 +384,7 @@ export async function montar(alvo, ctx) {
         h('h2', null, 'Pergunte pra IA'),
         h('p', { class: 'suave pequeno', style: 'margin:6px 0 12px' }, 'Não sabe por onde começar o dia?'),
         h('button', { type: 'button', class: 'pedido', onclick: () => pedirIA('O que eu faço hoje? Leia o cronograma, o kanban e a estratégia e me diga as 3 coisas mais importantes.') },
-          ic('ia'), h('span', null, 'O que eu faço hoje?'), h('span', { class: 'copiar-txt' }, 'Copiar'))))));
+          ic('ia'), h('span', null, 'O que eu faço hoje?'), h('span', { class: 'copiar-txt' }, temChat() ? 'Pedir' : 'Copiar'))))));
 
   return {
     titulo: 'Dashboard',

@@ -349,7 +349,7 @@ function pedir(texto) {
 
 export function botaoDoChat({ classe = 'botao-chat' } = {}) {
   return h('button', { type: 'button', class: `${classe} abrir-chat`, onclick: alternarChat, 'aria-label': 'Conversar com a IA', title: 'Conversar com a IA' },
-    ic('ia'), h('span', null, 'Conversar com a IA'), h('i', { class: 'bolinha' }));
+    ic('ia'), h('span', { class: 'rotulo-lateral' }, 'Conversar com a IA'), h('i', { class: 'bolinha' }));
 }
 
 export async function iniciarChat() {
@@ -381,6 +381,9 @@ export async function iniciarChat() {
       h('div', { class: 'chat-escrever' }, el.entrada, el.enviar, el.parar),
       el.nota));
   document.body.append(el.caixa);
+  // Atalho no canto de baixo, à direita (some quando o chat está aberto)
+  document.body.append(h('button', { type: 'button', class: 'chat-flutuante abrir-chat', onclick: () => abrirChat(), 'aria-label': 'Conversar com a IA', title: 'Conversar com a IA' },
+    ic('ia'), h('i', { class: 'bolinha' })));
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && estado.aberto && document.activeElement === el.entrada && !el.entrada.value) fecharChat(); });
 
   window.__chat = { disponivel, pedir, abrir: abrirChat };

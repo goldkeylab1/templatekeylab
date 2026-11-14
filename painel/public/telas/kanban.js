@@ -195,6 +195,11 @@ export async function montar(alvo, ctx) {
     texto: atual && atual.descricao ? atual.descricao : 'Arraste os cartões de uma coluna pra outra. A IA também move quando você conta que algo andou.',
     acoes: [novoQuadro],
   }));
+  const sonho = ctx.inicio && ctx.inicio.lembrete && ctx.inicio.lembrete.sonho;
+  if (sonho) {
+    alvo.append(h('a', { class: 'frase-do-dia rumo', href: '#/area/mentalidade', title: 'O meu sonho' },
+      ic('montanha'), h('span', null, `Cada cartão te deixa mais perto de: ${sonho}`)));
+  }
 
   if (!atual) {
     alvo.append(vazio({ titulo: 'Nenhum quadro ainda', texto: 'Crie um quadro no botão acima, ou peça pra IA.', pedido: 'Crie um quadro de kanban pra organizar o meu trabalho.' }));
