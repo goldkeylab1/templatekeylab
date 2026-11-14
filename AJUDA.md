@@ -345,7 +345,18 @@ Peça pra IA: `analisa meus números`
 
 Mande o link (ou o vídeo) pra IA e peça pra estudar. Ela anota em `marketing/virais/` e transforma em teste.
 
+Ou use a tela **Ferramentas**:
+
+- **Baixar um vídeo:** cole o link. Embaixo, em **Vídeos baixados**, cada vídeo tem **Estudar o vídeo** (o visual: as cenas, o ritmo, o texto na tela) e **Estudar a fala** (o roteiro: o gancho, a promessa, as viradas e o fim).
+- **Transcrever:** arraste um áudio ou vídeo do computador. Embaixo, em **Transcrições de arquivos do computador**, cada uma tem **Estudar com a IA** (o resumo, as ideias, as frases fortes e o que vira conteúdo).
+
 Peça pra IA: `Estude esse vídeo que viralizou: `
+
+### Como acho o padrão de vários vídeos?
+
+Na tela **Ferramentas**, marque a caixinha dos vídeos e dos roteiros que quer comparar (ou toque em **Selecionar todos**). Aparece uma barra embaixo: toque em **Estudar os selecionados juntos**. A IA estuda a imagem, o texto, o roteiro e os padrões virais de todos, conta quantos têm cada padrão (ex.: 4 de 5), monta um roteiro modelo e um guia visual, e salva em `marketing/virais/`.
+
+Peça pra IA: `Estude esses vídeos juntos e ache os padrões: `
 
 ### Como faço um roteiro?
 

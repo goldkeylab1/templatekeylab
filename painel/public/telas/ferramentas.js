@@ -224,8 +224,133 @@ function cancelarAtual() {
 
 // ---------- a tela ----------
 
-function pedidoPraIA(v) {
+// Os pedidos pra IA estudar: o vídeo (o visual), a fala do vídeo (o roteiro) e uma transcrição do computador
+function pedidoDoVideo(v) {
   return `Estude o vídeo da pasta arquivos/virais/${v.pasta}/ seguindo marketing/metodo/estudar-viral.md. Comece pelo info.md, depois os mosaicos (as fotos das cenas, em ordem) e a transcricao-com-tempos.txt. Quero entender o modelo visual dele (o estilo, as cenas, o ritmo e o texto na tela) pra fazer um vídeo no mesmo modelo, com o meu conteúdo. Salve o estudo em marketing/virais/${v.pasta}.md.`;
+}
+
+function pedidoDaFala(v) {
+  return `Estude a fala do vídeo da pasta arquivos/virais/${v.pasta}/: leia o info.md e a transcricao-com-tempos.txt, seguindo marketing/metodo/estudar-viral.md. Quero entender o roteiro: o gancho dos primeiros segundos, a promessa, as viradas, o fim e o que ele pede pra quem assiste. Depois, me mostre como eu usaria essa mesma estrutura com o meu conteúdo (veja negocio/ e marketing/o-que-funciona.md). Copie o princípio, nunca o texto. Salve em marketing/virais/${v.pasta}.md (se o arquivo já existir, complete a parte da fala).`;
+}
+
+function pedidoDaTranscricao(t) {
+  return `Estude a transcrição da pasta arquivos/transcricoes/${t.pasta}/ (do arquivo "${t.nome}"). Leia a transcricao-com-tempos.txt e me dê, com palavras simples: um resumo curto, as ideias principais, as frases mais fortes (com o tempo de cada uma), o que vira conteúdo pro meu negócio (veja negocio/ e marketing/o-que-funciona.md) e o que vale guardar no cérebro (anote no arquivo certo, como manda o AGENTS.md). Salve o estudo em saidas/estudos/${t.pasta}.md.`;
+}
+
+// ---------- selecionar vários e estudar juntos ----------
+// A seleção fica guardada na aba (sobrevive quando a lista redesenha)
+
+const SEL = 'keylab-ferr-selecao';
+est.sel = new Set((() => { try { return JSON.parse(sessionStorage.getItem(SEL) || '[]'); } catch { return []; } })());
+const guardarSel = () => { try { sessionStorage.setItem(SEL, JSON.stringify([...est.sel])); } catch { /* sem guardar */ } };
+const chaveSel = (grupo, pasta) => `${grupo}:${pasta}`;
+
+function selecionados() {
+  const d = est.dados || { virais: [], transcricoes: [] };
+  return {
+    videos: d.virais.filter((v) => est.sel.has(chaveSel('virais', v.pasta))),
+    roteiros: d.transcricoes.filter((t) => est.sel.has(chaveSel('transcricoes', t.pasta))),
+  };
+}
+
+function marcador(grupo, pasta, nome) {
+  const k = chaveSel(grupo, pasta);
+  const caixa = h('input', { type: 'checkbox', 'aria-label': `Selecionar pra estudar junto: ${nome}` });
+  caixa.checked = est.sel.has(k);
+  caixa.addEventListener('change', () => {
+    if (caixa.checked) est.sel.add(k); else est.sel.delete(k);
+    guardarSel();
+    const cartao = caixa.closest('article');
+    if (cartao) cartao.classList.toggle('selecionado', caixa.checked);
+    atualizarSelecao();
+  });
+  return h('label', { class: 'ferr-marcar', title: 'Selecionar pra estudar junto' }, caixa, h('span', { class: 'ferr-marcar-caixa' }, ic('check')));
+}
+
+function selecionarTodos(grupo) {
+  const lista = grupo === 'virais' ? est.dados.virais : est.dados.transcricoes;
+  const todos = lista.every((x) => est.sel.has(chaveSel(grupo, x.pasta)));
+  for (const x of lista) { if (todos) est.sel.delete(chaveSel(grupo, x.pasta)); else est.sel.add(chaveSel(grupo, x.pasta)); }
+  guardarSel();
+  desenharLista();
+}
+
+function atualizarSelecao() {
+  const el = est.el;
+  if (!el || !el.barra || !est.dados) return;
+  const { videos, roteiros } = selecionados();
+  const n = videos.length + roteiros.length;
+  el.barra.hidden = n === 0;
+  const partes = [
+    videos.length ? `${videos.length} ${videos.length === 1 ? 'vídeo' : 'vídeos'}` : null,
+    roteiros.length ? `${roteiros.length} ${roteiros.length === 1 ? 'roteiro' : 'roteiros'}` : null,
+  ].filter(Boolean).join(' e ');
+  el.selTexto.replaceChildren(
+    h('b', null, `${n} ${n === 1 ? 'selecionado' : 'selecionados'}`),
+    h('span', { class: 'fraco' }, n === 1 ? ' · escolha mais um pra comparar' : ` · ${partes}`));
+  el.selEstudar.disabled = n < 2;
+  el.selEstudar.title = n < 2 ? 'Escolha pelo menos 2 pra encontrar os padrões' : 'A IA estuda a imagem, o texto, o roteiro e os padrões virais de todos juntos';
+  for (const [grupo, lista, botao] of [['virais', est.dados.virais, el.todosV], ['transcricoes', est.dados.transcricoes, el.todosT]]) {
+    if (!botao) continue;
+    botao.hidden = lista.length < 2;
+    const todos = lista.length > 0 && lista.every((x) => est.sel.has(chaveSel(grupo, x.pasta)));
+    botao.textContent = todos ? 'Tirar a seleção' : 'Selecionar todos';
+  }
+}
+
+function hojeIso() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function pedidoDosSelecionados() {
+  const { videos, roteiros } = selecionados();
+  const n = videos.length + roteiros.length;
+  const linhas = [`Estude juntos estes ${n} conteúdos e encontre os padrões que se repetem, seguindo marketing/metodo/estudar-padroes.md.`];
+  if (videos.length) {
+    linhas.push('', 'Vídeos baixados (de cada um, leia o info.md, os mosaicos com as fotos das cenas, em ordem, e a transcricao-com-tempos.txt):');
+    for (const v of videos) {
+      const nums = [v.views != null ? `${curto(v.views)} views` : null, v.curtidas != null ? `${curto(v.curtidas)} curtidas` : null, v.perfil].filter(Boolean).join(', ');
+      linhas.push(`- arquivos/virais/${v.pasta}/ ("${v.titulo}"${nums ? `, ${nums}` : ''})`);
+    }
+  }
+  if (roteiros.length) {
+    linhas.push('', 'Roteiros transcritos (de cada um, leia a transcricao-com-tempos.txt):');
+    for (const t of roteiros) linhas.push(`- arquivos/transcricoes/${t.pasta}/ ("${t.nome}")`);
+  }
+  linhas.push('', 'Quero o estudo nestas partes:');
+  let i = 1;
+  if (videos.length) linhas.push(`${i++}. Imagem: o que se repete no visual (a primeira cena, o enquadramento, quem aparece, o cenário, as cores, os cortes e o ritmo, o texto na tela).`);
+  linhas.push(`${i++}. Texto e roteiro: o que se repete na fala (o gancho dos primeiros 3 segundos, a promessa, a estrutura com o tempo de cada parte, as viradas, o fim e o pedido pra quem assiste, as palavras e o tom).`);
+  linhas.push(`${i++}. Padrões virais: ${videos.length ? 'o que os de melhor resultado têm e os outros não (compare os números com o tamanho do perfil), e ' : ''}por que a pessoa para, fica até o fim e comenta ou compartilha.`);
+  linhas.push(`${i++}. O modelo: um roteiro modelo (as partes, com o tempo de cada uma)${videos.length ? ' e um guia visual (as cenas, em ordem)' : ''}, pra eu fazer com o meu conteúdo, na minha voz (veja negocio/ e marketing/o-que-funciona.md).`);
+  linhas.push('', `Diga quantos conteúdos têm cada padrão (ex.: 3 de ${n}). Copie o princípio, nunca o conteúdo.${videos.length ? '' : ' Aqui só tem roteiros, sem imagem: estude o texto.'} No fim, proponha no máximo 2 testes em marketing/testes.md. Salve o estudo em marketing/virais/${hojeIso()}-padroes.md.`);
+  return linhas.join('\n');
+}
+
+function barraDeSelecao() {
+  est.el.selTexto = h('span', { class: 'ferr-selecao-texto' });
+  est.el.selEstudar = h('button', {
+    type: 'button',
+    class: 'botao principal',
+    onclick: () => { if (selecionados().videos.length + selecionados().roteiros.length >= 2) pedirIA(pedidoDosSelecionados(), { mensagem: 'Pedido copiado. Cole na sua IA.' }); },
+  }, ic('ia'), 'Estudar os selecionados juntos');
+  est.el.barra = h('div', { class: 'barra-salvar vidro ferr-selecao', hidden: true, role: 'region', 'aria-label': 'Selecionados pra estudar juntos' },
+    h('span', { class: 'ferr-selecao-ico' }, ic('grade')),
+    est.el.selTexto,
+    h('div', { class: 'chips' },
+      h('button', { type: 'button', class: 'botao leve', onclick: () => { est.sel.clear(); guardarSel(); desenharLista(); } }, 'Limpar'),
+      est.el.selEstudar));
+  return est.el.barra;
+}
+
+// O título de cada parte da tela, com o ícone
+function tituloDaParte(icone, titulo, texto, extra = null) {
+  return h('div', { class: 'painel-cabeca ferr-cabeca' },
+    h('div', { class: 'ferr-cabeca-titulo' },
+      h('span', { class: 'ferr-ico' }, ic(icone)),
+      h('div', { style: 'min-width:0' }, h('h2', null, titulo), texto ? h('p', null, texto) : null)),
+    extra);
 }
 
 function formularioDeBaixar() {
@@ -469,20 +594,23 @@ function cartaoDoVideo(v) {
   const meta = [v.site, v.perfil, v.duracao ? relogio(v.duracao) : null, v.publicado ? `postado em ${dataBr(v.publicado)}` : null].filter(Boolean).join(' · ');
   const erroFotos = v.fotos === 'erro' || est.erros[`fotos:${v.pasta}`];
   const erroTexto = est.erros[`transcrever:${v.pasta}`];
-  return h('article', { class: 'ferr-video' },
+  return h('article', { class: `ferr-video${est.sel.has(chaveSel('virais', v.pasta)) ? ' selecionado' : ''}` },
+    marcador('virais', v.pasta, v.titulo),
     capa,
     h('div', { style: 'min-width:0' },
       h('h3', { title: v.titulo }, v.titulo),
       h('div', { class: 'meta' }, meta),
       numeros ? h('div', { class: 'meta' }, numeros) : null,
       h('div', { class: 'chips', 'data-chips': v.pasta }, chipFotos(v), chipTexto(v), v.estudado ? h('span', { class: 'chip cheio' }, ic('check'), 'estudado') : null),
+      h('div', { class: 'ferr-estudar' },
+        h('button', { type: 'button', class: 'botao principal pequeno', title: 'A IA estuda o visual: as cenas, o ritmo e o texto na tela', onclick: () => pedirIA(pedidoDoVideo(v), { mensagem: 'Pedido copiado. Cole na sua IA.' }) }, ic('video'), 'Estudar o vídeo'),
+        v.transcricao ? h('button', { type: 'button', class: 'botao pequeno', title: 'A IA estuda o roteiro: o gancho, a promessa, as viradas e o fim', onclick: () => pedirIA(pedidoDaFala(v), { mensagem: 'Pedido copiado. Cole na sua IA.' }) }, ic('ia'), 'Estudar a fala') : null),
       h('div', { class: 'acoes' },
-        h('button', { type: 'button', class: 'botao principal pequeno', onclick: () => pedirIA(pedidoPraIA(v), { mensagem: 'Pedido copiado. Cole na sua IA.' }) }, ic('ia'), 'Estudar com a IA'),
-        v.transcricao ? h('button', { type: 'button', class: 'botao pequeno', onclick: () => verTexto('virais', v.pasta, v.titulo) }, ic('texto'), 'Ver o texto') : null,
-        v.mosaicos ? h('button', { type: 'button', class: 'botao pequeno', onclick: () => verFotos(v) }, ic('grade'), 'Ver as fotos') : null,
+        v.transcricao ? h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => verTexto('virais', v.pasta, v.titulo) }, ic('texto'), 'Ver o texto') : null,
+        v.mosaicos ? h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => verFotos(v) }, ic('grade'), 'Ver as fotos') : null,
         erroFotos ? h('button', { type: 'button', class: 'botao pequeno', onclick: () => { delete est.erros[`fotos:${v.pasta}`]; agir('/api/ferramentas/fotos-de-novo', { pasta: v.pasta }); } }, ic('recarregar'), 'Tirar as fotos de novo') : null,
         erroTexto ? h('button', { type: 'button', class: 'botao pequeno', onclick: () => { delete est.erros[`transcrever:${v.pasta}`]; agir('/api/ferramentas/transcrever-de-novo', { pasta: v.pasta }); } }, ic('recarregar'), 'Transcrever de novo') : null,
-        h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => agir('/api/ferramentas/abrir', { grupo: 'virais', pasta: v.pasta }) }, ic('pasta'), 'Abrir a pasta'),
+        h('button', { type: 'button', class: 'icone-botao', title: 'Abrir a pasta', 'aria-label': 'Abrir a pasta', onclick: () => agir('/api/ferramentas/abrir', { grupo: 'virais', pasta: v.pasta }) }, ic('pasta')),
         v.transcricao && !erroTexto ? h('button', {
           type: 'button',
           class: 'icone-botao',
@@ -500,18 +628,27 @@ function cartaoDoVideo(v) {
         }, ic('lixo')))));
 }
 
-function linhaDeTranscricao(t) {
-  return h('div', { class: 'linha' },
-    h('div', { class: 'linha-texto' },
-      h('div', { style: 'overflow-wrap:anywhere' }, t.nome),
-      h('div', { class: 'meta' }, [t.duracao ? relogio(t.duracao) : null, `${milhar(t.palavras)} palavras`, t.modelo, `arquivos/transcricoes/${t.pasta}/`].filter(Boolean).join(' · '))),
-    h('div', { class: 'acoes-linha', style: 'opacity:1' },
-      h('button', { type: 'button', class: 'botao pequeno', onclick: () => verTexto('transcricoes', t.pasta, t.nome) }, ic('texto'), 'Ver o texto'),
-      h('button', { type: 'button', class: 'icone-botao', title: 'Abrir a pasta', 'aria-label': 'Abrir a pasta', onclick: () => agir('/api/ferramentas/abrir', { grupo: 'transcricoes', pasta: t.pasta }) }, ic('pasta')),
-      h('button', {
-        type: 'button', class: 'icone-botao', title: 'Apagar', 'aria-label': `Apagar a transcrição de ${t.nome}`,
-        onclick: async () => { if (await confirmar(`Apagar a transcrição de "${t.nome}"? O arquivo original não é apagado.`, { sim: 'Apagar' })) agir('/api/ferramentas/apagar', { grupo: 'transcricoes', pasta: t.pasta }, 'Apagada.'); },
-      }, ic('lixo'))));
+function cartaoDaTranscricao(t) {
+  const video = /\.(mp4|m4v|mov|mkv|webm|3gp|mpeg|mpg)$/i.test(t.nome || '');
+  return h('article', { class: `ferr-transcricao${est.sel.has(chaveSel('transcricoes', t.pasta)) ? ' selecionado' : ''}` },
+    marcador('transcricoes', t.pasta, t.nome),
+    h('div', { class: 'ferr-transcricao-ico' }, ic(video ? 'video' : 'microfone')),
+    h('div', { style: 'min-width:0' },
+      h('h3', { title: t.nome }, t.nome),
+      h('div', { class: 'meta' }, [t.em ? `transcrito em ${dataBr(t.em)}` : null, t.modelo].filter(Boolean).join(' · ')),
+      h('div', { class: 'chips' },
+        t.duracao ? h('span', { class: 'chip' }, ic('relogio'), relogio(t.duracao)) : null,
+        h('span', { class: 'chip' }, ic('texto'), `${milhar(t.palavras)} palavras`),
+        t.estudado ? h('span', { class: 'chip cheio' }, ic('check'), 'estudado') : null),
+      h('div', { class: 'ferr-estudar' },
+        h('button', { type: 'button', class: 'botao principal pequeno', title: 'A IA resume, tira as ideias e as frases fortes, e diz o que vira conteúdo', onclick: () => pedirIA(pedidoDaTranscricao(t), { mensagem: 'Pedido copiado. Cole na sua IA.' }) }, ic('ia'), 'Estudar com a IA'),
+        h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => verTexto('transcricoes', t.pasta, t.nome) }, ic('texto'), 'Ver o texto'),
+        h('span', { class: 'ferr-estudar-resto' },
+          h('button', { type: 'button', class: 'icone-botao', title: 'Abrir a pasta', 'aria-label': 'Abrir a pasta', onclick: () => agir('/api/ferramentas/abrir', { grupo: 'transcricoes', pasta: t.pasta }) }, ic('pasta')),
+          h('button', {
+            type: 'button', class: 'icone-botao', title: 'Apagar', 'aria-label': `Apagar a transcrição de ${t.nome}`,
+            onclick: async () => { if (await confirmar(`Apagar a transcrição de "${t.nome}"? O arquivo original não é apagado.`, { sim: 'Apagar' })) agir('/api/ferramentas/apagar', { grupo: 'transcricoes', pasta: t.pasta }, 'Apagada.'); },
+          }, ic('lixo'))))));
 }
 
 function desenharLista() {
@@ -520,10 +657,17 @@ function desenharLista() {
   const v = est.dados.virais;
   el.lista.replaceChildren(v.length
     ? h('div', { class: 'ferr-videos' }, v.map(cartaoDoVideo))
-    : vazio({ titulo: 'Nenhum vídeo baixado ainda', texto: 'Cole o link de um vídeo que viralizou aqui em cima. Ele vem com a capa e os números do post, e depois saem as fotos das cenas e o texto falado, sozinhos.' }));
+    : vazio({ titulo: 'Nenhum vídeo baixado ainda', texto: 'Cole aqui em cima o link de um vídeo que viralizou. Ele vem com a capa e os números do post, e depois saem as fotos das cenas e o texto falado, sozinhos.' }));
   const t = est.dados.transcricoes;
-  el.transcricoes.hidden = !t.length;
-  el.listaT.replaceChildren(...t.map(linhaDeTranscricao));
+  el.contaV.textContent = v.length ? String(v.length) : '';
+  el.contaT.textContent = t.length ? String(t.length) : '';
+  el.listaT.replaceChildren(t.length
+    ? h('div', { class: 'ferr-videos' }, t.map(cartaoDaTranscricao))
+    : vazio({ titulo: 'Nenhuma transcrição ainda', texto: 'Arraste aqui em cima um áudio ou vídeo do computador (uma aula, uma reunião, um áudio do WhatsApp). O texto aparece aqui, pronto pra IA estudar.' }));
+  const existem = new Set([...v.map((x) => chaveSel('virais', x.pasta)), ...t.map((x) => chaveSel('transcricoes', x.pasta))]);
+  for (const k of [...est.sel]) if (!existem.has(k)) est.sel.delete(k);
+  guardarSel();
+  atualizarSelecao();
   est.ultimaAssinatura = assinatura(est.dados);
 }
 
@@ -551,35 +695,38 @@ export async function montar(alvo, ctx) {
 
   est.el = {
     tarefas: h('div', { class: 'pilha', style: 'margin-top:14px' }),
-    agora: h('section', { class: 'painel vidro ferr-agora', style: 'margin-top:18px', 'aria-live': 'polite' }),
+    agora: h('section', { class: 'painel vidro ferr-agora', 'aria-live': 'polite' }),
     lista: h('div'),
-    listaT: h('div', { class: 'lista' }),
+    listaT: h('div'),
+    contaV: h('span', { class: 'conta' }),
+    contaT: h('span', { class: 'conta' }),
   };
-  est.el.transcricoes = h('section', { class: 'painel vidro', style: 'margin-top:18px' },
-    h('div', { class: 'painel-cabeca' },
-      h('h2', null, 'Transcrições de arquivos do computador'),
-      h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => agir('/api/ferramentas/abrir', { grupo: 'transcricoes' }) }, ic('pasta'), 'Abrir a pasta')),
-    est.el.listaT);
+  const abrirPasta = (grupo) => h('button', { type: 'button', class: 'icone-botao ferr-abrir', title: 'Abrir a pasta', 'aria-label': 'Abrir a pasta', onclick: () => agir('/api/ferramentas/abrir', { grupo }) }, ic('pasta'));
+  est.el.todosV = h('button', { type: 'button', class: 'ferr-todos', hidden: true, onclick: () => selecionarTodos('virais') }, 'Selecionar todos');
+  est.el.todosT = h('button', { type: 'button', class: 'ferr-todos', hidden: true, onclick: () => selecionarTodos('transcricoes') }, 'Selecionar todos');
+  const sub = (icone, titulo, conta, texto, extra, todos) => h('div', { class: 'ferr-sub' },
+    h('div', { class: 'ferr-sub-titulo' }, ic(icone), h('h3', null, titulo), conta, extra),
+    texto ? h('p', { class: 'fraco pequeno' }, texto) : null,
+    todos ? h('div', { class: 'ferr-sub-selecao' }, h('span', { class: 'fraco pequeno' }, 'Marque pra estudar vários juntos e achar os padrões.'), todos) : null);
 
   alvo.append(
     cabeca({ titulo: 'Ferramentas', texto: 'Baixe um vídeo pra estudar e transforme fala em texto. Tudo roda neste computador: nada vai pra servidor nenhum.' }),
-    h('div', { class: 'grade-2' },
-      h('section', { class: 'painel vidro' },
-        h('div', { class: 'painel-cabeca' }, h('h2', null, 'Baixar um vídeo')),
-        formularioDeBaixar(),
-        est.el.tarefas),
-      h('section', { class: 'painel vidro' },
-        h('div', { class: 'painel-cabeca' }, h('h2', null, 'Transcrever')),
-        h('div', { class: 'pilha' }, zonaDeSoltar(), escolhaDoModelo()))),
     est.el.agora,
-    h('section', { class: 'painel vidro', style: 'margin-top:18px' },
-      h('div', { class: 'painel-cabeca' },
-        h('div', null,
-          h('h2', { style: 'margin:0' }, 'Vídeos baixados'),
-          h('div', { class: 'fraco pequeno' }, 'As fotos das cenas e o texto saem sozinhos, um vídeo por vez. Deixe esta aba aberta.')),
-        h('button', { type: 'button', class: 'botao leve pequeno', onclick: () => agir('/api/ferramentas/abrir', { grupo: 'virais' }) }, ic('pasta'), 'Abrir a pasta')),
-      est.el.lista),
-    est.el.transcricoes);
+    h('div', { class: 'ferr-colunas' },
+      // Baixar um vídeo, com os vídeos baixados embaixo
+      h('section', { class: 'painel vidro ferr-coluna' },
+        tituloDaParte('baixar', 'Baixar um vídeo', 'Cole o link de um vídeo que viralizou. A IA estuda o visual e a fala dele.'),
+        formularioDeBaixar(),
+        est.el.tarefas,
+        sub('video', 'Vídeos baixados', est.el.contaV, 'As fotos das cenas e o texto saem sozinhos, um por vez. Deixe esta aba aberta.', abrirPasta('virais'), est.el.todosV),
+        est.el.lista),
+      // Transcrever, com as transcrições embaixo
+      h('section', { class: 'painel vidro ferr-coluna' },
+        tituloDaParte('microfone', 'Transcrever', 'Um áudio ou vídeo do computador vira texto. A IA estuda o que foi falado.'),
+        h('div', { class: 'pilha' }, zonaDeSoltar(), escolhaDoModelo()),
+        sub('texto', 'Transcrições de arquivos do computador', est.el.contaT, 'O arquivo não sai do computador: só o texto fica na pasta.', abrirPasta('transcricoes'), est.el.todosT),
+        est.el.listaT)),
+    barraDeSelecao());
 
   desenharTarefas();
   desenharLista();
